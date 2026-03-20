@@ -199,13 +199,11 @@ export function TopNavigation() {
       .filter(Boolean) as NavGroup[];
   }, [clinicPlan]);
 
-  const handleSignOut = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/authentication");
-        },
-      },
+  const handleSignOut = () => {
+    authClient.signOut().then(() => {
+      window.location.href = "/authentication";
+    }).catch(() => {
+      window.location.href = "/authentication";
     });
   };
 

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -X POST http://localhost:3003/api/auth/sign-up/email -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"Elo Clinic\"\"\"\",\"\"\"\"email\"\"\"\":\"\"\"\"rejuvenescimentofacial@metodoelo.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"Elo@2026!\"\"\"\"}' -v)",
+      "Bash(node -e \":*)"
+    ]
+  }
+}
