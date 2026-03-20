@@ -7,7 +7,6 @@ import {
   MousePointerClick,
   Repeat,
   Target,
-
   Users,
   Zap,
 } from "lucide-react";

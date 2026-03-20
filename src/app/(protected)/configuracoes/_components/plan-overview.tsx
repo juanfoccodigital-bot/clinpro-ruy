@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function PlanOverview({ currentPlan: _currentPlan }: { currentPlan: string }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function PlanOverview({ currentPlan }: { currentPlan: string }) {
   return (
     <div className="space-y-4">
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent">

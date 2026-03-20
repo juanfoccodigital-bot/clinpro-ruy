@@ -176,17 +176,13 @@ export const getPlanById = (planId: string | null | undefined): Plan => {
   return PLANS.find((p) => p.id === planId) ?? PLANS[0];
 };
 
-export const canAccessModule = (
-  _planId: string | null | undefined,
-  _moduleId: ModuleId,
-): boolean => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const canAccessModule = (planId: string | null | undefined, moduleId: ModuleId): boolean => {
   return true;
 };
 
-export const canAccessRoute = (
-  _planId: string | null | undefined,
-  _pathname: string,
-): boolean => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const canAccessRoute = (planId: string | null | undefined, pathname: string): boolean => {
   return true;
 };
 
