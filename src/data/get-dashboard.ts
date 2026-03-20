@@ -1,0 +1,274 @@
+import dayjs from "dayjs";
+import { and, asc, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+
+import { db } from "@/db";
+import {
+  aiConversationsTable,
+  appointmentsTable,
+  doctorsTable,
+  financialTransactionsTable,
+  patientsTable,
+  whatsappMessagesTable,
+} from "@/db/schema";
+
+interface Params {
+  from: string;
+  to: string;
+  session: {
+    user: {
+      clinic: {
+        id: string;
+      };
+    };
+  };
+}
+
+export const getDashboard = async ({ from, to, session }: Params) => {
+  const clinicId = session.user.clinic.id;
+  const chartStartDate = dayjs().subtract(10, "days").startOf("day").toDate();
+  const chartEndDate = dayjs().add(10, "days").endOf("day").toDate();
+  const now = new Date();
+
+  const [
+    [totalRevenue],
+    [totalAppointments],
+    [totalPatients],
+    [activeAiConversations],
+    [activeWhatsappConversations],
+    topDoctors,
+    topSpecialties,
+    dailyAppointmentsData,
+    appointmentsByStatus,
+    recentAppointments,
+    recentPatients,
+    recentTransactions,
+    upcomingAppointments,
+    appointmentDates,
+  ] = await Promise.all([
+    db
+      .select({
+        total: sum(appointmentsTable.appointmentPriceInCents),
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(appointmentsTable.date, new Date(from)),
+          lte(appointmentsTable.date, new Date(to)),
+        ),
+      ),
+    db
+      .select({
+        total: count(),
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(appointmentsTable.date, new Date(from)),
+          lte(appointmentsTable.date, new Date(to)),
+        ),
+      ),
+    db
+      .select({
+        total: count(),
+      })
+      .from(patientsTable)
+      .where(eq(patientsTable.clinicId, clinicId)),
+    // Active AI conversations
+    db
+      .select({
+        total: count(),
+      })
+      .from(aiConversationsTable)
+      .where(
+        and(
+          eq(aiConversationsTable.clinicId, clinicId),
+          eq(aiConversationsTable.status, "active"),
+        ),
+      ),
+    // Active WhatsApp conversations (distinct phones in last 24h)
+    db
+      .select({
+        total: sql<number>`COUNT(DISTINCT ${whatsappMessagesTable.remotePhone})`.as(
+          "total",
+        ),
+      })
+      .from(whatsappMessagesTable)
+      .where(
+        and(
+          eq(whatsappMessagesTable.clinicId, clinicId),
+          gte(
+            whatsappMessagesTable.createdAt,
+            dayjs().subtract(24, "hours").toDate(),
+          ),
+        ),
+      ),
+    db
+      .select({
+        id: doctorsTable.id,
+        name: doctorsTable.name,
+        avatarImageUrl: doctorsTable.avatarImageUrl,
+        specialty: doctorsTable.specialty,
+        appointments: count(appointmentsTable.id),
+      })
+      .from(doctorsTable)
+      .leftJoin(
+        appointmentsTable,
+        and(
+          eq(appointmentsTable.doctorId, doctorsTable.id),
+          gte(appointmentsTable.date, new Date(from)),
+          lte(appointmentsTable.date, new Date(to)),
+        ),
+      )
+      .where(eq(doctorsTable.clinicId, clinicId))
+      .groupBy(doctorsTable.id)
+      .orderBy(desc(count(appointmentsTable.id)))
+      .limit(10),
+    db
+      .select({
+        specialty: doctorsTable.specialty,
+        appointments: count(appointmentsTable.id),
+      })
+      .from(appointmentsTable)
+      .innerJoin(doctorsTable, eq(appointmentsTable.doctorId, doctorsTable.id))
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(appointmentsTable.date, new Date(from)),
+          lte(appointmentsTable.date, new Date(to)),
+        ),
+      )
+      .groupBy(doctorsTable.specialty)
+      .orderBy(desc(count(appointmentsTable.id))),
+    db
+      .select({
+        date: sql<string>`DATE(${appointmentsTable.date})`.as("date"),
+        appointments: count(appointmentsTable.id),
+        revenue:
+          sql<number>`COALESCE(SUM(${appointmentsTable.appointmentPriceInCents}), 0)`.as(
+            "revenue",
+          ),
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(appointmentsTable.date, chartStartDate),
+          lte(appointmentsTable.date, chartEndDate),
+        ),
+      )
+      .groupBy(sql`DATE(${appointmentsTable.date})`)
+      .orderBy(sql`DATE(${appointmentsTable.date})`),
+    // Appointments by status (for donut chart)
+    db
+      .select({
+        status: appointmentsTable.status,
+        total: count(),
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(appointmentsTable.date, new Date(from)),
+          lte(appointmentsTable.date, new Date(to)),
+        ),
+      )
+      .groupBy(appointmentsTable.status),
+    // Recent appointments (for activity feed)
+    db.query.appointmentsTable.findMany({
+      where: eq(appointmentsTable.clinicId, clinicId),
+      with: { patient: true, doctor: true },
+      orderBy: (table, { desc: d }) => [d(table.createdAt)],
+      limit: 5,
+    }),
+    // Recent patients
+    db.query.patientsTable.findMany({
+      where: eq(patientsTable.clinicId, clinicId),
+      orderBy: (table, { desc: d }) => [d(table.createdAt)],
+      limit: 5,
+    }),
+    // Recent paid transactions
+    db.query.financialTransactionsTable.findMany({
+      where: and(
+        eq(financialTransactionsTable.clinicId, clinicId),
+        eq(financialTransactionsTable.status, "paid"),
+      ),
+      orderBy: (table, { desc: d }) => [d(table.createdAt)],
+      limit: 5,
+    }),
+    // Upcoming appointments
+    db.query.appointmentsTable.findMany({
+      where: and(
+        eq(appointmentsTable.clinicId, clinicId),
+        gte(appointmentsTable.date, now),
+      ),
+      with: { patient: true, doctor: true },
+      orderBy: (table) => [asc(table.date)],
+      limit: 10,
+    }),
+    // Appointment dates for mini calendar (current month)
+    db
+      .select({
+        date: sql<string>`DATE(${appointmentsTable.date})`.as("date"),
+        total: count(),
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.clinicId, clinicId),
+          gte(
+            appointmentsTable.date,
+            dayjs().startOf("month").toDate(),
+          ),
+          lte(
+            appointmentsTable.date,
+            dayjs().endOf("month").toDate(),
+          ),
+        ),
+      )
+      .groupBy(sql`DATE(${appointmentsTable.date})`),
+  ]);
+
+  // Build recent activities feed
+  const recentActivities = [
+    ...recentAppointments.map((a) => ({
+      type: "appointment" as const,
+      description: `Agendamento: ${a.patient.name} com ${a.doctor.name}`,
+      timestamp: a.createdAt,
+    })),
+    ...recentPatients.map((p) => ({
+      type: "patient" as const,
+      description: `Novo paciente: ${p.name}`,
+      timestamp: p.createdAt,
+    })),
+    ...recentTransactions.map((t) => ({
+      type: "transaction" as const,
+      description: `Pagamento: ${t.description || "Transação"} - R$ ${(t.amountInCents / 100).toFixed(2).replace(".", ",")}`,
+      timestamp: t.createdAt,
+    })),
+  ]
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    )
+    .slice(0, 10);
+
+  return {
+    totalRevenue,
+    totalAppointments,
+    totalPatients,
+    activeConversations: {
+      total:
+        (Number(activeAiConversations.total) || 0) +
+        (Number(activeWhatsappConversations.total) || 0),
+    },
+    topDoctors,
+    topSpecialties,
+    dailyAppointmentsData,
+    appointmentsByStatus,
+    recentActivities,
+    upcomingAppointments,
+    appointmentDates,
+  };
+};
