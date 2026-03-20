@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { getWhatsappStatus } from "@/actions/get-whatsapp-status";
@@ -155,7 +155,6 @@ const allNavGroups: NavGroup[] = [
 ];
 
 export function TopNavigation() {
-  const router = useRouter();
   const session = authClient.useSession();
   const pathname = usePathname();
   const [whatsappStatus, setWhatsappStatus] = useState<
