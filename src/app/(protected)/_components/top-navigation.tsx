@@ -175,9 +175,6 @@ export function TopNavigation() {
   const clinicPlan = (session.data?.user as Record<string, unknown>)?.clinic
     ? ((session.data?.user as Record<string, unknown>).clinic as Record<string, unknown>)?.plan as string | undefined
     : undefined;
-  
-    ? ((session.data?.user as Record<string, unknown>).clinic as Record<string, unknown>)?.logoUrl as string | undefined
-    : undefined;
 
   // Filter nav groups based on plan
   const navGroups = useMemo(() => {
