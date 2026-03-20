@@ -3,6 +3,10 @@ import { Contact } from "lucide-react";
 import { headers } from "next/headers";
 
 import {
+  getContactsWithStages,
+  getPipelineStages,
+} from "@/actions/crm-pipeline";
+import {
   PageBanner,
   PageContainer,
   PageContent,
@@ -11,10 +15,6 @@ import { db } from "@/db";
 import { patientsTable, whatsappMessagesTable } from "@/db/schema";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
-import {
-  getContactsWithStages,
-  getPipelineStages,
-} from "@/actions/crm-pipeline";
 
 import {
   ContactRow,

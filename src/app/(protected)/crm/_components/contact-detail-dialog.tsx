@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
 import {
   CalendarDays,
   Mail,
@@ -10,8 +8,16 @@ import {
   Trash2,
   User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import {
+  deleteContact,
+  moveContactToStage,
+  removeContactFromPipeline,
+  updateContact,
+} from "@/actions/crm-pipeline";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,13 +47,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-import {
-  deleteContact,
-  moveContactToStage,
-  removeContactFromPipeline,
-  updateContact,
-} from "@/actions/crm-pipeline";
 
 export interface ContactWithStage {
   id: string;

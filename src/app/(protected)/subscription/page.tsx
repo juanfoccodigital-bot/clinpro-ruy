@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock, CreditCard, AlertTriangle } from "lucide-react";
+import { AlertTriangle,CalendarDays, CheckCircle2, Clock, CreditCard } from "lucide-react";
 import { headers } from "next/headers";
 
 import {

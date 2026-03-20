@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -11,8 +9,16 @@ import {
   Settings,
   Trash2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import {
+  createPipelineStage,
+  deletePipelineStage,
+  reorderPipelineStages,
+  updatePipelineStage,
+} from "@/actions/crm-pipeline";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,13 +40,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import {
-  createPipelineStage,
-  deletePipelineStage,
-  reorderPipelineStages,
-  updatePipelineStage,
-} from "@/actions/crm-pipeline";
 
 import type { PipelineStage } from "./contact-detail-dialog";
 

@@ -1,17 +1,17 @@
 import dayjs from "dayjs";
 import { AlertTriangle, TrendingUp } from "lucide-react";
 
+import { getMetaAdsData } from "@/actions/meta-ads";
 import {
   PageBanner,
   PageContainer,
   PageContent,
 } from "@/components/ui/page-container";
 import WithAuthentication from "@/hocs/with-authentication";
-import { getMetaAdsData } from "@/actions/meta-ads";
 
-import AdsStatsCards from "./_components/ads-stats-cards";
-import AdsDailyChart from "./_components/ads-daily-chart";
 import AdsCampaignsTable from "./_components/ads-campaigns-table";
+import AdsDailyChart from "./_components/ads-daily-chart";
+import AdsStatsCards from "./_components/ads-stats-cards";
 import AdsTopCreatives from "./_components/ads-top-creatives";
 import DateFilter from "./_components/date-filter";
 

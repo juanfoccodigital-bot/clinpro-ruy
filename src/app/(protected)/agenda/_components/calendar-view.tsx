@@ -71,7 +71,7 @@ const CalendarView = ({
   const [weekStart, setWeekStart] = useState(() => {
     return dayjs().startOf("week").add(1, "day"); // Monday
   });
-  const [selectedDoctorIds, setSelectedDoctorIds] = useState<string[]>([]);
+  const [selectedDoctorIds] = useState<string[]>([]);
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => weekStart.add(i, "day"));

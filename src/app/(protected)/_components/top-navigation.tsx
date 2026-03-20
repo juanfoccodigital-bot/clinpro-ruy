@@ -12,8 +12,6 @@ import {
   ClipboardList,
   Contact,
   DollarSign,
-  FileText,
-
   Headphones,
   LayoutDashboard,
   LogOut,
@@ -177,7 +175,7 @@ export function TopNavigation() {
   const clinicPlan = (session.data?.user as Record<string, unknown>)?.clinic
     ? ((session.data?.user as Record<string, unknown>).clinic as Record<string, unknown>)?.plan as string | undefined
     : undefined;
-  const clinicLogoUrl = (session.data?.user as Record<string, unknown>)?.clinic
+  
     ? ((session.data?.user as Record<string, unknown>).clinic as Record<string, unknown>)?.logoUrl as string | undefined
     : undefined;
 

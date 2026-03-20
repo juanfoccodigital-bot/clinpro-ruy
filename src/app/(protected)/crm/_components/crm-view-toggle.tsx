@@ -15,9 +15,9 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 import { ContactRow, contactsTableColumns } from "./contacts-table-columns";
 import KanbanBoard from "./kanban-board";
-import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 
 interface CrmViewToggleProps {
   contacts: ContactRow[];

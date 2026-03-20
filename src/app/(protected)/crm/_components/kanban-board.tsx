@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition, DragEvent, useMemo } from "react";
 import {
   Mail,
   MoreHorizontal,
@@ -10,8 +8,15 @@ import {
   User,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { DragEvent, useMemo,useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import {
+  deleteContact,
+  moveContactToStage,
+  removeContactFromPipeline,
+} from "@/actions/crm-pipeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,15 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  deleteContact,
-  moveContactToStage,
-  removeContactFromPipeline,
-} from "@/actions/crm-pipeline";
-
+import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 import ContactDetailDialog from "./contact-detail-dialog";
 import StageManagerDialog from "./stage-manager-dialog";
-import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 
 interface KanbanBoardProps {
   stages: PipelineStage[];
@@ -39,7 +38,7 @@ interface KanbanBoardProps {
 
 export default function KanbanBoard({ stages, contacts }: KanbanBoardProps) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [selectedContact, setSelectedContact] = useState<ContactWithStage | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [draggedContactId, setDraggedContactId] = useState<string | null>(null);
