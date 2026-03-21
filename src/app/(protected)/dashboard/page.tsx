@@ -82,28 +82,32 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     <WithAuthentication mustHaveClinic>
       <PageContainer>
         {/* Welcome Banner */}
-        <div className="animate-fade-slide-up relative overflow-hidden rounded-2xl border border-amber-500/10 bg-gradient-to-br from-amber-500/10 via-yellow-600/5 to-amber-500/5 p-6 md:p-8">
-          {/* Animated decorative elements */}
-          <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-amber-500/10 to-yellow-600/10" />
-          <div className="animate-float absolute -right-5 top-12 h-28 w-28 rounded-full bg-gradient-to-br from-yellow-600/10 to-amber-500/5" style={{ animationDelay: "1s" }} />
-          <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-amber-500/5" />
-          <div className="animate-float absolute left-10 bottom-0 h-16 w-16 rounded-full bg-yellow-600/5" style={{ animationDelay: "2s" }} />
+        <div className="animate-fade-slide-up relative overflow-hidden rounded-2xl border border-[#D08C32]/10 bg-gradient-to-br from-[#D08C32]/8 via-[#D3AB32]/5 to-[#FFF9F3] p-6 shadow-luxury md:p-8">
+          {/* Refined decorative elements */}
+          <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#D08C32]/8 to-[#D3AB32]/6" />
+          <div className="animate-float absolute -right-5 top-12 h-28 w-28 rounded-full bg-gradient-to-br from-[#D3AB32]/8 to-[#D08C32]/4" style={{ animationDelay: "1s" }} />
+          <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-[#D08C32]/4" />
+          <div className="animate-float absolute left-10 bottom-0 h-16 w-16 rounded-full bg-[#D3AB32]/5" style={{ animationDelay: "2s" }} />
+
+          {/* Subtle gold line accent at top */}
+          <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[#D08C32]/20 to-transparent" />
 
           <div className="relative flex items-center justify-between">
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
                 {greeting}, <span className="text-gradient">{firstName}</span>!
               </h1>
               <p className="text-muted-foreground text-sm md:text-base">
                 Acompanhe seus procedimentos e resultados
               </p>
-              <p className="text-muted-foreground text-xs md:text-sm">
+              <div className="flex items-center gap-2 text-xs md:text-sm">
                 {clinicName && (
-                  <span className="text-foreground font-medium">{clinicName}</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D08C32]/8 px-3 py-0.5 text-[#D08C32] font-medium">
+                    {clinicName}
+                  </span>
                 )}
-                {clinicName && " · "}
-                <span className="capitalize">{todayFormatted}</span>
-              </p>
+                <span className="text-muted-foreground capitalize">{todayFormatted}</span>
+              </div>
             </div>
             <DatePicker />
           </div>

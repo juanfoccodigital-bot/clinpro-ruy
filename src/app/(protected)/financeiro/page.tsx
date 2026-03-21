@@ -194,101 +194,119 @@ const FinanceiroPage = async () => {
         <PageContent>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Receita do Mes
                 </CardTitle>
-                <TrendingUpIcon className="h-4 w-4 text-green-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10">
+                  <TrendingUpIcon className="h-4 w-4 text-emerald-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+              <CardContent className="relative">
+                <div className="text-3xl font-extrabold text-emerald-600">
                   {formatCurrency(totalIncome)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Valores pagos no mes atual
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Despesas do Mes
                 </CardTitle>
-                <TrendingDownIcon className="h-4 w-4 text-red-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10">
+                  <TrendingDownIcon className="h-4 w-4 text-red-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
+              <CardContent className="relative">
+                <div className="text-3xl font-extrabold text-red-600">
                   {formatCurrency(totalExpense)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Despesas pagas no mes atual
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#D08C32]/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Saldo</CardTitle>
-                <WalletIcon className="h-4 w-4 text-blue-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D08C32]/10">
+                  <WalletIcon className="h-4 w-4 text-[#D08C32]" />
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative">
                 <div
-                  className={`text-2xl font-bold ${balance >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`text-3xl font-extrabold ${balance >= 0 ? "text-emerald-600" : "text-red-600"}`}
                 >
                   {formatCurrency(balance)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Receitas menos despesas do mes
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#D3AB32]/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Contas a Receber
                 </CardTitle>
-                <TrendingUpIcon className="h-4 w-4 text-yellow-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D3AB32]/10">
+                  <TrendingUpIcon className="h-4 w-4 text-[#D3AB32]" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
+              <CardContent className="relative">
+                <div className="text-3xl font-extrabold text-[#D3AB32]">
                   {formatCurrency(pendingReceivables)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Receitas pendentes de pagamento
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Contas a Pagar
                 </CardTitle>
-                <TrendingDownIcon className="h-4 w-4 text-orange-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10">
+                  <TrendingDownIcon className="h-4 w-4 text-orange-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
+              <CardContent className="relative">
+                <div className="text-3xl font-extrabold text-orange-600">
                   {formatCurrency(pendingPayables)}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Despesas pendentes de pagamento
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="group relative overflow-hidden rounded-2xl shadow-luxury transition-all duration-300 hover-glow shimmer-hover">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/4 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Vencidos</CardTitle>
-                <AlertTriangleIcon className="h-4 w-4 text-red-600" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10">
+                  <AlertTriangleIcon className="h-4 w-4 text-red-600" />
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
+              <CardContent className="relative">
+                <div className="text-3xl font-extrabold text-red-600">
                   {overdueCount}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   Transacoes com pagamento vencido
                 </p>
               </CardContent>
@@ -296,10 +314,10 @@ const FinanceiroPage = async () => {
           </div>
 
           {/* Recent Transactions */}
-          <Card>
+          <Card className="rounded-2xl shadow-luxury">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">
+                <CardTitle className="text-base font-semibold">
                   Transacoes Recentes
                 </CardTitle>
                 <Link href="/financeiro/transacoes">

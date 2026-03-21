@@ -1,7 +1,7 @@
 "use client";
 
 import { ptBR } from "date-fns/locale";
-import { CalendarRange } from "lucide-react";
+import { CalendarDays, CalendarRange } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Calendar } from "@/components/ui/calendar";
@@ -46,12 +46,15 @@ const MiniCalendar = ({ appointmentDates }: MiniCalendarProps) => {
   }, [selectedDateString, appointmentDates]);
 
   return (
-    <Card className="hover:shadow-lg">
+    <Card className="shadow-luxury transition-shadow duration-300 hover:shadow-luxury-lg">
       <CardHeader className="flex flex-row items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-          <CalendarRange className="text-primary h-4 w-4" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#D08C32]/15 to-[#D3AB32]/10">
+          <CalendarRange className="h-4 w-4 text-[#D08C32]" />
         </div>
-        <CardTitle>Calendário</CardTitle>
+        <div>
+          <CardTitle>Calendario</CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">Dias com agendamentos</p>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col items-center">
         <Calendar
@@ -72,17 +75,18 @@ const MiniCalendar = ({ appointmentDates }: MiniCalendarProps) => {
           }}
         />
         {selectedDate && (
-          <div className="mt-3 rounded-xl bg-muted/50 px-4 py-2.5 text-center">
-            <p className="text-sm">
-              <span className="text-2xl font-bold">{selectedDateAppointments}</span>
-              <span className="text-muted-foreground ml-1.5 text-xs">
+          <div className="mt-3 w-full rounded-2xl bg-gradient-to-r from-[#D08C32]/6 to-[#D3AB32]/4 border border-[#D08C32]/8 px-4 py-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <CalendarDays className="h-4 w-4 text-[#D08C32]" />
+              <span className="text-3xl font-extrabold text-[#261C10] dark:text-white">{selectedDateAppointments}</span>
+              <span className="text-muted-foreground text-xs">
                 agendamento{selectedDateAppointments !== 1 ? "s" : ""} em{" "}
                 {selectedDate.toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   month: "short",
                 })}
               </span>
-            </p>
+            </div>
           </div>
         )}
       </CardContent>

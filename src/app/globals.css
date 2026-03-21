@@ -246,10 +246,11 @@
 
   /* Hover glow — Ouro ELO */
   .hover-glow {
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   .hover-glow:hover {
     box-shadow: 0 0 0 1px rgba(208, 140, 50, 0.1), 0 8px 24px -4px rgba(208, 140, 50, 0.12);
+    transform: translateY(-1px);
   }
 
   /* Gradient border — Ouro ELO */
@@ -267,5 +268,67 @@
     mask-composite: exclude;
     -webkit-mask-composite: xor;
     pointer-events: none;
+  }
+
+  /* Glass morphism card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(208, 140, 50, 0.08);
+  }
+
+  /* Dark glass */
+  .dark .glass-card {
+    background: rgba(38, 28, 16, 0.6);
+    border: 1px solid rgba(208, 140, 50, 0.12);
+  }
+
+  /* Shimmer on hover */
+  .shimmer-hover {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer-hover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(208, 140, 50, 0.06) 45%,
+      rgba(211, 171, 50, 0.1) 50%,
+      rgba(208, 140, 50, 0.06) 55%,
+      transparent 60%
+    );
+    background-size: 200% 100%;
+    background-position: 200% 0;
+    transition: background-position 0s;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .shimmer-hover:hover::after {
+    background-position: -200% 0;
+    transition: background-position 0.8s ease;
+  }
+
+  /* Luxury shadow */
+  .shadow-luxury {
+    box-shadow:
+      0 1px 2px rgba(38, 28, 16, 0.04),
+      0 4px 12px rgba(38, 28, 16, 0.06),
+      0 0 0 1px rgba(208, 140, 50, 0.04);
+  }
+  .shadow-luxury-lg {
+    box-shadow:
+      0 2px 4px rgba(38, 28, 16, 0.04),
+      0 8px 24px rgba(38, 28, 16, 0.08),
+      0 0 0 1px rgba(208, 140, 50, 0.06);
+  }
+
+  /* Gold divider line */
+  .divider-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(208, 140, 50, 0.2), transparent);
   }
 }

@@ -239,7 +239,7 @@ export function TopNavigation() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <header className="sticky top-0 z-30 border-b border-amber-100/60 bg-white/80 backdrop-blur-xl shadow-sm shadow-amber-100/20">
+      <header className="sticky top-0 z-30 border-b border-[#D08C32]/8 bg-white/70 backdrop-blur-2xl shadow-sm shadow-[#D08C32]/5 dark:bg-[#261C10]/70">
         <div className="flex h-14 items-center gap-2.5 px-4 lg:px-5">
           {/* Logo */}
           <Link href="/dashboard" className="mr-3 shrink-0 flex items-center gap-2.5 group">
@@ -257,10 +257,10 @@ export function TopNavigation() {
                   key={group.title}
                   href={group.url}
                   className={cn(
-                    "rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-200",
+                    "rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-300",
                     isGroupActive(group)
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm shadow-[#D08C32]/20"
+                      : "text-muted-foreground hover:bg-[#D08C32]/8 hover:text-foreground",
                   )}
                 >
                   {group.title}
@@ -270,10 +270,10 @@ export function TopNavigation() {
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-200 outline-none",
+                        "flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-300 outline-none",
                         isGroupActive(group)
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm shadow-[#D08C32]/20"
+                          : "text-muted-foreground hover:bg-[#D08C32]/8 hover:text-foreground",
                       )}
                     >
                       {group.title}
@@ -357,8 +357,8 @@ export function TopNavigation() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-colors hover:bg-muted outline-none">
-                  <Avatar className="h-8 w-8 ring-2 ring-primary/10">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+                  <Avatar className="h-8 w-8 ring-2 ring-[#D08C32]/15">
+                    <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-xs font-semibold">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
