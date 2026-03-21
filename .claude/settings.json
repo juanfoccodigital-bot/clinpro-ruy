@@ -8,7 +8,8 @@
       "Bash(ls /Users/usuario/Downloads/clinpro-main/src/app/\\\\\\(protected\\\\\\)/dashboard/)",
       "Bash(ls /Users/usuario/Downloads/clinpro-main/src/app/\\\\\\(protected\\\\\\)/dashboard/_components/)",
       "Bash(PGPASSWORD='Clinpro@2026' psql \"postgresql://postgres.gsknsrhchbjuysfeaxrg:Clinpro%402026@aws-0-us-west-2.pooler.supabase.com:5432/postgres\" -c \":*)",
-      "Bash(brew list:*)"
+      "Bash(brew list:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }
