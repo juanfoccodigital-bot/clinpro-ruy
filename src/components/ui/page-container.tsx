@@ -73,7 +73,7 @@ export const PageBanner = ({
             <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
               {title}
             </h1>
-            <p className="text-sm text-white/60 md:text-base">
+            <p className="text-sm text-white/80 md:text-base">
               {description}
             </p>
           </div>

@@ -125,9 +125,9 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
           <div className="relative flex items-center justify-between">
             <div className="space-y-2.5">
               <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                {greeting}, <span className="text-[#D3AB32]">{firstName}</span>!
+                {greeting}, {firstName}!
               </h1>
-              <p className="text-sm text-white/60 md:text-base">
+              <p className="text-sm text-white/80 md:text-base">
                 Acompanhe seus procedimentos e resultados
               </p>
               <div className="flex items-center gap-2 text-xs md:text-sm">
@@ -136,7 +136,7 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
                     {clinicName}
                   </span>
                 )}
-                <span className="text-white/40 capitalize">{todayFormatted}</span>
+                <span className="text-white/70 capitalize">{todayFormatted}</span>
               </div>
             </div>
             <DatePicker />
