@@ -14,6 +14,9 @@ export const upsertPatientSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
+  leadSource: z.string().optional(),
+  leadSourceDetail: z.string().optional(),
+  leadAdName: z.string().optional(),
 });
 
 export type UpsertPatientSchema = z.infer<typeof upsertPatientSchema>;

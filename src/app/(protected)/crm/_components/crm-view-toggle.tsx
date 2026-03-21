@@ -23,6 +23,10 @@ interface CrmViewToggleProps {
   contacts: ContactRow[];
   stages: PipelineStage[];
   contactsWithStages: ContactWithStage[];
+  checklistData?: {
+    stageItems: { id: string; stageId: string; label: string; order: number }[];
+    contactChecklist: { id: string; contactStageId: string; checklistItemId: string; completed: boolean }[];
+  };
   totalCount: number;
   currentPage: number;
   totalPages: number;
@@ -34,6 +38,7 @@ export default function CrmViewToggle({
   contacts,
   stages,
   contactsWithStages,
+  checklistData,
   totalCount,
   currentPage,
   totalPages,
@@ -131,7 +136,7 @@ export default function CrmViewToggle({
         </TabsList>
 
         <TabsContent value="kanban">
-          <KanbanBoard stages={stages} contacts={contactsWithStages} />
+          <KanbanBoard stages={stages} contacts={contactsWithStages} checklistData={checklistData} />
         </TabsContent>
 
         <TabsContent value="tabela">

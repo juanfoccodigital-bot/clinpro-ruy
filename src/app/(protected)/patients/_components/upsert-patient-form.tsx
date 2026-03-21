@@ -48,6 +48,9 @@ const formSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
+  leadSource: z.string().optional(),
+  leadSourceDetail: z.string().optional(),
+  leadAdName: z.string().optional(),
 });
 
 interface UpsertPatientFormProps {
@@ -69,12 +72,25 @@ const UpsertPatientForm = ({
       email: patient?.email ?? "",
       phoneNumber: patient?.phoneNumber ?? "",
       sex: patient?.sex ?? undefined,
+      leadSource: patient?.leadSource ?? undefined,
+      leadSourceDetail: patient?.leadSourceDetail ?? undefined,
+      leadAdName: patient?.leadAdName ?? undefined,
     },
   });
 
   useEffect(() => {
-    if (isOpen) {
-      form.reset(patient);
+    if (isOpen && patient) {
+      form.reset({
+        name: patient.name,
+        email: patient.email,
+        phoneNumber: patient.phoneNumber,
+        sex: patient.sex,
+        leadSource: patient.leadSource ?? undefined,
+        leadSourceDetail: patient.leadSourceDetail ?? undefined,
+        leadAdName: patient.leadAdName ?? undefined,
+      });
+    } else if (isOpen) {
+      form.reset();
     }
   }, [isOpen, form, patient]);
 
@@ -184,6 +200,66 @@ const UpsertPatientForm = ({
                     <SelectItem value="female">Feminino</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="leadSource"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Origem do Lead</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione a origem" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="facebook">Facebook</SelectItem>
+                    <SelectItem value="instagram">Instagram</SelectItem>
+                    <SelectItem value="indicacao">Indicacao</SelectItem>
+                    <SelectItem value="google">Google</SelectItem>
+                    <SelectItem value="site">Site</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="leadSourceDetail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Detalhe da Origem</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Nome da campanha ou quem indicou"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="leadAdName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome do Anuncio</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Nome do anuncio ou criativo"
+                    {...field}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

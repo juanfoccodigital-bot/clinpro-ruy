@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CheckSquare,
   Mail,
   MoreHorizontal,
   Phone,
@@ -9,7 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DragEvent, useMemo,useState, useTransition } from "react";
+import { DragEvent, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -31,12 +32,30 @@ import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 import ContactDetailDialog from "./contact-detail-dialog";
 import StageManagerDialog from "./stage-manager-dialog";
 
+interface ChecklistProgress {
+  total: number;
+  completed: number;
+}
+
 interface KanbanBoardProps {
   stages: PipelineStage[];
   contacts: ContactWithStage[];
+  checklistData?: {
+    stageItems: { id: string; stageId: string; label: string; order: number }[];
+    contactChecklist: { id: string; contactStageId: string; checklistItemId: string; completed: boolean }[];
+  };
 }
 
-export default function KanbanBoard({ stages, contacts }: KanbanBoardProps) {
+const LEAD_SOURCE_LABELS: Record<string, { label: string; icon: string }> = {
+  facebook: { label: "Facebook", icon: "\uD83D\uDCD8" },
+  instagram: { label: "Instagram", icon: "\uD83D\uDCF1" },
+  indicacao: { label: "Indicacao", icon: "\uD83D\uDC64" },
+  google: { label: "Google", icon: "\uD83D\uDD0D" },
+  site: { label: "Site", icon: "\uD83C\uDF10" },
+  outro: { label: "Outro", icon: "\uD83D\uDCCC" },
+};
+
+export default function KanbanBoard({ stages, contacts, checklistData }: KanbanBoardProps) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [selectedContact, setSelectedContact] = useState<ContactWithStage | null>(null);
@@ -45,6 +64,42 @@ export default function KanbanBoard({ stages, contacts }: KanbanBoardProps) {
   const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
 
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
+
+  // Build checklist progress map: contactId -> { total, completed }
+  const checklistProgressMap = useMemo(() => {
+    const map: Record<string, ChecklistProgress> = {};
+    if (!checklistData) return map;
+
+    const { stageItems, contactChecklist } = checklistData;
+
+    // Group stage items by stageId
+    const itemsByStage: Record<string, string[]> = {};
+    for (const item of stageItems) {
+      if (!itemsByStage[item.stageId]) itemsByStage[item.stageId] = [];
+      itemsByStage[item.stageId].push(item.id);
+    }
+
+    // For each contact, compute progress
+    for (const contact of contacts) {
+      if (!contact.stage) continue;
+      const stageItemIds = itemsByStage[contact.stage.stageId] || [];
+      if (stageItemIds.length === 0) continue;
+
+      const completedCount = contactChecklist.filter(
+        (cc) =>
+          cc.contactStageId === contact.stage!.id &&
+          stageItemIds.includes(cc.checklistItemId) &&
+          cc.completed,
+      ).length;
+
+      map[contact.id] = {
+        total: stageItemIds.length,
+        completed: completedCount,
+      };
+    }
+
+    return map;
+  }, [checklistData, contacts]);
 
   // Group contacts by stage
   const contactsByStage = useMemo(() => {
@@ -133,7 +188,6 @@ export default function KanbanBoard({ stages, contacts }: KanbanBoardProps) {
 
     if (!contactId) return;
 
-    // Find the contact to check if it's already in this stage
     const contact = contacts.find((c) => c.id === contactId);
     if (!contact) return;
 
@@ -203,106 +257,142 @@ export default function KanbanBoard({ stages, contacts }: KanbanBoardProps) {
               {isOver ? "Soltar aqui" : "Arraste contatos para ca"}
             </div>
           ) : (
-            columnContacts.map((contact) => (
-              <div
-                key={contact.id}
-                draggable
-                onDragStart={(e) => onDragStart(e, contact.id)}
-                onDragEnd={onDragEnd}
-                className={`group cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-all hover:shadow-md active:cursor-grabbing ${
-                  draggedContactId === contact.id ? "opacity-50" : ""
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => handleOpenDetail(contact)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100">
-                        <User className="h-3.5 w-3.5 text-amber-700" />
+            columnContacts.map((contact) => {
+              const progress = checklistProgressMap[contact.id];
+              const leadInfo = contact.leadSource
+                ? LEAD_SOURCE_LABELS[contact.leadSource]
+                : null;
+
+              return (
+                <div
+                  key={contact.id}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, contact.id)}
+                  onDragEnd={onDragEnd}
+                  className={`group cursor-grab rounded-lg border bg-card p-3 shadow-sm transition-all hover:shadow-md active:cursor-grabbing ${
+                    draggedContactId === contact.id ? "opacity-50" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleOpenDetail(contact)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-100">
+                          <User className="h-3.5 w-3.5 text-amber-700" />
+                        </div>
+                        <p className="text-sm font-medium leading-tight line-clamp-1">
+                          {contact.name}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium leading-tight line-clamp-1">
-                        {contact.name}
-                      </p>
                     </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => handleOpenDetail(contact)}>
+                          <User className="mr-2 h-3.5 w-3.5" />
+                          Ver detalhes
+                        </DropdownMenuItem>
+                        {sortedStages.length > 0 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            {sortedStages
+                              .filter((s) => s.id !== contact.stage?.stageId)
+                              .map((stage) => (
+                                <DropdownMenuItem
+                                  key={stage.id}
+                                  onClick={() =>
+                                    handleMoveToStage(contact.id, stage.id)
+                                  }
+                                >
+                                  <div
+                                    className="mr-2 h-2.5 w-2.5 rounded-full"
+                                    style={{ backgroundColor: stage.color }}
+                                  />
+                                  Mover: {stage.name}
+                                </DropdownMenuItem>
+                              ))}
+                          </>
+                        )}
+                        <DropdownMenuSeparator />
+                        {contact.stage && (
+                          <DropdownMenuItem
+                            onClick={() => handleRemoveFromPipeline(contact.id)}
+                          >
+                            <X className="mr-2 h-3.5 w-3.5" />
+                            Remover do pipeline
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDeleteContact(contact.id)}
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Excluir contato
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => handleOpenDetail(contact)}>
-                        <User className="mr-2 h-3.5 w-3.5" />
-                        Ver detalhes
-                      </DropdownMenuItem>
-                      {sortedStages.length > 0 && (
-                        <>
-                          <DropdownMenuSeparator />
-                          {sortedStages
-                            .filter((s) => s.id !== contact.stage?.stageId)
-                            .map((stage) => (
-                              <DropdownMenuItem
-                                key={stage.id}
-                                onClick={() =>
-                                  handleMoveToStage(contact.id, stage.id)
-                                }
-                              >
-                                <div
-                                  className="mr-2 h-2.5 w-2.5 rounded-full"
-                                  style={{ backgroundColor: stage.color }}
-                                />
-                                Mover: {stage.name}
-                              </DropdownMenuItem>
-                            ))}
-                        </>
-                      )}
-                      <DropdownMenuSeparator />
-                      {contact.stage && (
-                        <DropdownMenuItem
-                          onClick={() => handleRemoveFromPipeline(contact.id)}
-                        >
-                          <X className="mr-2 h-3.5 w-3.5" />
-                          Remover do pipeline
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => handleDeleteContact(contact.id)}
-                      >
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Excluir contato
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                  <div
+                    className="mt-2 cursor-pointer space-y-1 pl-9"
+                    onClick={() => handleOpenDetail(contact)}
+                  >
+                    {contact.phoneNumber && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        <span>{formatPhone(contact.phoneNumber)}</span>
+                      </div>
+                    )}
+                    {contact.email && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Mail className="h-3 w-3" />
+                        <span className="truncate">{contact.email}</span>
+                      </div>
+                    )}
+                  </div>
 
-                <div
-                  className="mt-2 cursor-pointer space-y-1 pl-9"
-                  onClick={() => handleOpenDetail(contact)}
-                >
-                  {contact.phoneNumber && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Phone className="h-3 w-3" />
-                      <span>{formatPhone(contact.phoneNumber)}</span>
+                  {/* Lead source badge + Checklist progress */}
+                  {(leadInfo || (progress && progress.total > 0)) && (
+                    <div className="mt-2 flex items-center gap-2 pl-9">
+                      {leadInfo && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 border border-amber-200">
+                          {leadInfo.icon} {leadInfo.label}
+                        </span>
+                      )}
+                      {progress && progress.total > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <CheckSquare className="h-3 w-3" />
+                          {progress.completed}/{progress.total}
+                        </span>
+                      )}
                     </div>
                   )}
-                  {contact.email && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Mail className="h-3 w-3" />
-                      <span className="truncate">{contact.email}</span>
+
+                  {/* Progress bar */}
+                  {progress && progress.total > 0 && (
+                    <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all bg-amber-500"
+                        style={{
+                          width: `${(progress.completed / progress.total) * 100}%`,
+                        }}
+                      />
                     </div>
                   )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

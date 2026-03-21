@@ -4,18 +4,23 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  CheckSquare,
   Palette,
   Plus,
   Settings,
   Trash2,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
+  createChecklistItem,
   createPipelineStage,
+  deleteChecklistItem,
   deletePipelineStage,
+  getStageChecklistItems,
   reorderPipelineStages,
   updatePipelineStage,
 } from "@/actions/crm-pipeline";
@@ -60,6 +65,12 @@ const PRESET_COLORS = [
   "#78716c", // stone
 ];
 
+interface ChecklistItem {
+  id: string;
+  label: string;
+  order: number;
+}
+
 interface StageManagerDialogProps {
   stages: PipelineStage[];
 }
@@ -79,6 +90,11 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
+
+  // Checklist editing
+  const [editChecklistItems, setEditChecklistItems] = useState<ChecklistItem[]>([]);
+  const [newChecklistLabel, setNewChecklistLabel] = useState("");
+  const [loadingChecklist, setLoadingChecklist] = useState(false);
 
   const handleCreateStage = () => {
     if (!newName.trim()) {
@@ -157,10 +173,53 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
     });
   };
 
-  const startEditing = (stage: PipelineStage) => {
+  const startEditing = async (stage: PipelineStage) => {
     setEditingId(stage.id);
     setEditName(stage.name);
     setEditColor(stage.color);
+    setNewChecklistLabel("");
+    setLoadingChecklist(true);
+    try {
+      const items = await getStageChecklistItems(stage.id);
+      setEditChecklistItems(items);
+    } catch {
+      setEditChecklistItems([]);
+    } finally {
+      setLoadingChecklist(false);
+    }
+  };
+
+  const handleAddChecklistItem = () => {
+    if (!newChecklistLabel.trim() || !editingId) return;
+    startTransition(async () => {
+      try {
+        await createChecklistItem({
+          stageId: editingId,
+          label: newChecklistLabel.trim(),
+        });
+        setNewChecklistLabel("");
+        // Reload checklist items
+        const items = await getStageChecklistItems(editingId);
+        setEditChecklistItems(items);
+        toast.success("Item adicionado");
+        router.refresh();
+      } catch {
+        toast.error("Erro ao adicionar item");
+      }
+    });
+  };
+
+  const handleDeleteChecklistItem = (itemId: string) => {
+    startTransition(async () => {
+      try {
+        await deleteChecklistItem(itemId);
+        setEditChecklistItems((prev) => prev.filter((i) => i.id !== itemId));
+        toast.success("Item removido");
+        router.refresh();
+      } catch {
+        toast.error("Erro ao remover item");
+      }
+    });
   };
 
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
@@ -197,10 +256,10 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
             {sortedStages.map((stage, index) => (
               <div
                 key={stage.id}
-                className="flex items-center gap-2 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                className="flex flex-col rounded-lg border p-3 transition-colors hover:bg-muted/50"
               >
                 {editingId === stage.id ? (
-                  <div className="flex-1 space-y-3">
+                  <div className="space-y-3">
                     <Input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
@@ -225,6 +284,61 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
                         ))}
                       </div>
                     </div>
+
+                    {/* Checklist items section */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CheckSquare className="h-3 w-3" />
+                        Checklist da Etapa
+                      </Label>
+                      {loadingChecklist ? (
+                        <p className="text-xs text-muted-foreground">Carregando...</p>
+                      ) : (
+                        <div className="space-y-1">
+                          {editChecklistItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between rounded border bg-background px-2 py-1"
+                            >
+                              <span className="text-xs">{item.label}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleDeleteChecklistItem(item.id)}
+                                disabled={isPending}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          <div className="flex gap-1">
+                            <Input
+                              value={newChecklistLabel}
+                              onChange={(e) => setNewChecklistLabel(e.target.value)}
+                              placeholder="Novo item do checklist"
+                              className="h-7 text-xs"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddChecklistItem();
+                                }
+                              }}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={handleAddChecklistItem}
+                              disabled={isPending || !newChecklistLabel.trim()}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -245,7 +359,7 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
                     </div>
                   </div>
                 ) : (
-                  <>
+                  <div className="flex items-center gap-2">
                     <div
                       className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: stage.color }}
@@ -285,7 +399,7 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))}

@@ -3,6 +3,7 @@ import { Contact } from "lucide-react";
 import { headers } from "next/headers";
 
 import {
+  getAllChecklistData,
   getContactsWithStages,
   getPipelineStages,
 } from "@/actions/crm-pipeline";
@@ -143,9 +144,10 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
   ).length;
 
   // Fetch pipeline data
-  const [stages, contactsWithStages] = await Promise.all([
+  const [stages, contactsWithStages, checklistData] = await Promise.all([
     getPipelineStages(),
     getContactsWithStages(),
+    getAllChecklistData(),
   ]);
 
   return (
@@ -168,6 +170,7 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
               contacts={contacts}
               stages={stages}
               contactsWithStages={contactsWithStages}
+              checklistData={checklistData}
               totalCount={filteredCount}
               currentPage={page}
               totalPages={totalPages}

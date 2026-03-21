@@ -234,6 +234,9 @@ export const patientsTable = pgTable("patients", {
   phoneNumber: text("phone_number").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   sex: patientSexEnum("sex").notNull(),
+  leadSource: text("lead_source"), // 'facebook', 'instagram', 'indicacao', 'google', 'site', 'outro'
+  leadSourceDetail: text("lead_source_detail"), // specific campaign or person name
+  leadAdName: text("lead_ad_name"), // ad/creative name
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => new Date()),
@@ -1992,12 +1995,13 @@ export const crmPipelineStagesTableRelations = relations(
       references: [clinicsTable.id],
     }),
     contactStages: many(crmContactStagesTable),
+    checklistItems: many(crmStageChecklistItemsTable),
   }),
 );
 
 export const crmContactStagesTableRelations = relations(
   crmContactStagesTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     clinic: one(clinicsTable, {
       fields: [crmContactStagesTable.clinicId],
       references: [clinicsTable.id],
@@ -2009,6 +2013,63 @@ export const crmContactStagesTableRelations = relations(
     stage: one(crmPipelineStagesTable, {
       fields: [crmContactStagesTable.stageId],
       references: [crmPipelineStagesTable.id],
+    }),
+    checklistItems: many(crmContactChecklistTable),
+  }),
+);
+
+// CRM Stage Checklist Items (template items per stage)
+export const crmStageChecklistItemsTable = pgTable("crm_stage_checklist_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  stageId: uuid("stage_id")
+    .notNull()
+    .references(() => crmPipelineStagesTable.id, { onDelete: "cascade" }),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const crmStageChecklistItemsTableRelations = relations(
+  crmStageChecklistItemsTable,
+  ({ one }) => ({
+    stage: one(crmPipelineStagesTable, {
+      fields: [crmStageChecklistItemsTable.stageId],
+      references: [crmPipelineStagesTable.id],
+    }),
+    clinic: one(clinicsTable, {
+      fields: [crmStageChecklistItemsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+  }),
+);
+
+// CRM Contact Checklist (completion status per contact-stage)
+export const crmContactChecklistTable = pgTable("crm_contact_checklist", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  contactStageId: uuid("contact_stage_id")
+    .notNull()
+    .references(() => crmContactStagesTable.id, { onDelete: "cascade" }),
+  checklistItemId: uuid("checklist_item_id")
+    .notNull()
+    .references(() => crmStageChecklistItemsTable.id, { onDelete: "cascade" }),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const crmContactChecklistTableRelations = relations(
+  crmContactChecklistTable,
+  ({ one }) => ({
+    contactStage: one(crmContactStagesTable, {
+      fields: [crmContactChecklistTable.contactStageId],
+      references: [crmContactStagesTable.id],
+    }),
+    checklistItem: one(crmStageChecklistItemsTable, {
+      fields: [crmContactChecklistTable.checklistItemId],
+      references: [crmStageChecklistItemsTable.id],
     }),
   }),
 );

@@ -94,6 +94,7 @@ const allNavGroups: NavGroup[] = [
     matchPaths: ["/crm"],
     items: [
       { title: "Contatos", url: "/crm", icon: Contact },
+      { title: "Dashboard Comercial", url: "/crm/dashboard", icon: BarChart3 },
     ],
   },
   {

@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(curl -s -X POST http://localhost:3003/api/auth/sign-up/email -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"Elo Clinic\"\"\"\",\"\"\"\"email\"\"\"\":\"\"\"\"rejuvenescimentofacial@metodoelo.com\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"Elo@2026!\"\"\"\"}' -v)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(ls /Users/usuario/Downloads/clinpro-main/src/app/\\\\\\(protected\\\\\\)/)",
+      "Bash(npx shadcn@latest add checkbox --yes)",
+      "Bash(ls /Users/usuario/Downloads/clinpro-main/src/app/\\\\\\(protected\\\\\\)/dashboard/)",
+      "Bash(ls /Users/usuario/Downloads/clinpro-main/src/app/\\\\\\(protected\\\\\\)/dashboard/_components/)",
+      "Bash(PGPASSWORD='Clinpro@2026' psql \"postgresql://postgres.gsknsrhchbjuysfeaxrg:Clinpro%402026@aws-0-us-west-2.pooler.supabase.com:5432/postgres\" -c \":*)",
+      "Bash(brew list:*)"
     ]
   }
 }

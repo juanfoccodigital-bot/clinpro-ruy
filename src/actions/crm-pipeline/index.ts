@@ -1,13 +1,15 @@
 "use server";
 
-import { and, asc,eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
 import {
+  crmContactChecklistTable,
   crmContactStagesTable,
   crmPipelineStagesTable,
+  crmStageChecklistItemsTable,
   patientsTable,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
@@ -238,4 +240,154 @@ export async function updateContact(data: {
     );
 
   revalidatePath("/crm");
+}
+
+// ============================================================
+// CHECKLIST ACTIONS
+// ============================================================
+
+// Get checklist items for a stage
+export async function getStageChecklistItems(stageId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  const items = await db.query.crmStageChecklistItemsTable.findMany({
+    where: and(
+      eq(crmStageChecklistItemsTable.stageId, stageId),
+      eq(crmStageChecklistItemsTable.clinicId, session.user.clinic.id),
+    ),
+    orderBy: [asc(crmStageChecklistItemsTable.order)],
+  });
+
+  return items;
+}
+
+// Create checklist item for a stage
+export async function createChecklistItem(data: {
+  stageId: string;
+  label: string;
+}) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+  const clinicId = session.user.clinic.id;
+
+  // Get max order
+  const existing = await db.query.crmStageChecklistItemsTable.findMany({
+    where: and(
+      eq(crmStageChecklistItemsTable.stageId, data.stageId),
+      eq(crmStageChecklistItemsTable.clinicId, clinicId),
+    ),
+  });
+  const maxOrder =
+    existing.length > 0
+      ? Math.max(...existing.map((i) => i.order)) + 1
+      : 0;
+
+  await db.insert(crmStageChecklistItemsTable).values({
+    stageId: data.stageId,
+    clinicId,
+    label: data.label,
+    order: maxOrder,
+  });
+
+  revalidatePath("/crm");
+}
+
+// Delete checklist item
+export async function deleteChecklistItem(itemId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  await db
+    .delete(crmStageChecklistItemsTable)
+    .where(
+      and(
+        eq(crmStageChecklistItemsTable.id, itemId),
+        eq(crmStageChecklistItemsTable.clinicId, session.user.clinic.id),
+      ),
+    );
+
+  revalidatePath("/crm");
+}
+
+// Toggle checklist completion for a contact
+export async function toggleContactChecklist(data: {
+  contactStageId: string;
+  checklistItemId: string;
+  completed: boolean;
+}) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  // Check if record exists
+  const existing = await db.query.crmContactChecklistTable.findFirst({
+    where: and(
+      eq(crmContactChecklistTable.contactStageId, data.contactStageId),
+      eq(crmContactChecklistTable.checklistItemId, data.checklistItemId),
+    ),
+  });
+
+  if (existing) {
+    await db
+      .update(crmContactChecklistTable)
+      .set({
+        completed: data.completed,
+        completedAt: data.completed ? new Date() : null,
+      })
+      .where(eq(crmContactChecklistTable.id, existing.id));
+  } else {
+    await db.insert(crmContactChecklistTable).values({
+      contactStageId: data.contactStageId,
+      checklistItemId: data.checklistItemId,
+      completed: data.completed,
+      completedAt: data.completed ? new Date() : null,
+    });
+  }
+
+  revalidatePath("/crm");
+}
+
+// Get contact checklist status
+export async function getContactChecklist(contactStageId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  const items = await db.query.crmContactChecklistTable.findMany({
+    where: eq(crmContactChecklistTable.contactStageId, contactStageId),
+  });
+
+  return items;
+}
+
+// Get all checklist data for all contacts (batch)
+export async function getAllChecklistData() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+  const clinicId = session.user.clinic.id;
+
+  const stageItems = await db.query.crmStageChecklistItemsTable.findMany({
+    where: eq(crmStageChecklistItemsTable.clinicId, clinicId),
+    orderBy: [asc(crmStageChecklistItemsTable.order)],
+  });
+
+  const contactStages = await db.query.crmContactStagesTable.findMany({
+    where: eq(crmContactStagesTable.clinicId, clinicId),
+  });
+
+  const contactStageIds = contactStages.map((cs) => cs.id);
+
+  let contactChecklist: typeof crmContactChecklistTable.$inferSelect[] = [];
+  if (contactStageIds.length > 0) {
+    // Fetch all contact checklist items for this clinic's contacts
+    const allChecklist = [];
+    for (const csId of contactStageIds) {
+      const items = await db.query.crmContactChecklistTable.findMany({
+        where: eq(crmContactChecklistTable.contactStageId, csId),
+      });
+      allChecklist.push(...items);
+    }
+    contactChecklist = allChecklist;
+  }
+
+  return { stageItems, contactChecklist };
 }
