@@ -11,7 +11,8 @@
       "Bash(brew list:*)",
       "Bash(npx eslint:*)",
       "Bash(PGPASSWORD='Clinpro@2026' psql \"postgresql://postgres.gsknsrhchbjuysfeaxrg@aws-0-us-west-2.pooler.supabase.com:5432/postgres\" -c \":*)",
-      "Bash(npx --yes -p pg-cli psql --version)"
+      "Bash(npx --yes -p pg-cli psql --version)",
+      "Bash(head -5 src/app/\\\\\\(protected\\\\\\)/financeiro/maquininhas/page.tsx)"
     ]
   }
 }

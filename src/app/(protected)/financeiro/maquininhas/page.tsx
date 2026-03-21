@@ -1,11 +1,10 @@
 import { eq } from "drizzle-orm";
-import { CreditCard } from "lucide-react";
 import { headers } from "next/headers";
 
 import {
+  PageActions,
   PageContainer,
   PageContent,
-  PageActions,
   PageDescription,
   PageHeader,
   PageHeaderContent,
@@ -16,8 +15,8 @@ import { paymentMachinesTable } from "@/db/schema";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
 
-import MachinesList from "./_components/machines-list";
 import AddMachineButton from "./_components/add-machine-button";
+import MachinesList from "./_components/machines-list";
 
 const MaquininhasPage = async () => {
   const session = await auth.api.getSession({
