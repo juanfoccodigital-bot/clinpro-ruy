@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   Check,
   Circle,
   GripVertical,
@@ -41,6 +42,7 @@ interface ChecklistItem {
   stageId: string;
   label: string;
   order: number;
+  moveToStageId?: string | null;
 }
 
 interface ChecklistCompletion {
@@ -294,6 +296,9 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
           <div className="border-t px-3 py-2 space-y-1">
             {stageChecklistItems.map((item) => {
               const isCompleted = completionSet.has(`${contactStageId}:${item.id}`);
+              const ruleStage = item.moveToStageId
+                ? stages.find((s) => s.id === item.moveToStageId)
+                : null;
               return (
                 <button
                   key={item.id}
@@ -307,9 +312,15 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
                   ) : (
                     <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40 group-hover/check:text-muted-foreground" />
                   )}
-                  <span className={`text-[11px] leading-tight ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                  <span className={`text-[11px] leading-tight flex-1 ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}>
                     {item.label}
                   </span>
+                  {ruleStage && !isCompleted && (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] text-blue-500 shrink-0" title={`Ao marcar, mover para: ${ruleStage.name}`}>
+                      <ArrowRight className="h-2.5 w-2.5" />
+                      <span className="max-w-[60px] truncate">{ruleStage.name}</span>
+                    </span>
+                  )}
                 </button>
               );
             })}

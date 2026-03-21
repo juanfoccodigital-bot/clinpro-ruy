@@ -1,10 +1,12 @@
 import dayjs from "dayjs";
-import { and, asc, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import { and, asc, between, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
   aiConversationsTable,
   appointmentsTable,
+  crmContactStagesTable,
+  crmPipelineStagesTable,
   doctorsTable,
   financialTransactionsTable,
   patientsTable,
@@ -254,6 +256,72 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     )
     .slice(0, 10);
 
+  // CRM Funnel data - leads by stage
+  let leadsByStage: { stageName: string; stageColor: string; stageOrder: number; count: number }[] = [];
+  try {
+    leadsByStage = await db
+      .select({
+        stageName: crmPipelineStagesTable.name,
+        stageColor: crmPipelineStagesTable.color,
+        stageOrder: crmPipelineStagesTable.order,
+        count: count(),
+      })
+      .from(crmContactStagesTable)
+      .innerJoin(crmPipelineStagesTable, eq(crmContactStagesTable.stageId, crmPipelineStagesTable.id))
+      .where(eq(crmContactStagesTable.clinicId, clinicId))
+      .groupBy(crmPipelineStagesTable.name, crmPipelineStagesTable.color, crmPipelineStagesTable.order)
+      .orderBy(crmPipelineStagesTable.order);
+  } catch {
+    leadsByStage = [];
+  }
+
+  // Leads by source
+  let leadsBySource: { source: string | null; count: number }[] = [];
+  try {
+    leadsBySource = await db
+      .select({
+        source: patientsTable.leadSource,
+        count: count(),
+      })
+      .from(patientsTable)
+      .where(and(
+        eq(patientsTable.clinicId, clinicId),
+        between(patientsTable.createdAt, new Date(from), new Date(to))
+      ))
+      .groupBy(patientsTable.leadSource);
+  } catch {
+    leadsBySource = [];
+  }
+
+  // Total patients count (already have totalPatients, but we need period-specific)
+  let totalPatientsAll = 0;
+  try {
+    const [result] = await db
+      .select({ total: count() })
+      .from(patientsTable)
+      .where(eq(patientsTable.clinicId, clinicId));
+    totalPatientsAll = result?.total ?? 0;
+  } catch {
+    totalPatientsAll = 0;
+  }
+
+  // Recent leads (last 7 days count)
+  let recentLeadsTotal = 0;
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const [result] = await db
+      .select({ total: count() })
+      .from(patientsTable)
+      .where(and(
+        eq(patientsTable.clinicId, clinicId),
+        sql`${patientsTable.createdAt} >= ${sevenDaysAgo}`
+      ));
+    recentLeadsTotal = result?.total ?? 0;
+  } catch {
+    recentLeadsTotal = 0;
+  }
+
   return {
     totalRevenue,
     totalAppointments,
@@ -270,5 +338,9 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     recentActivities,
     upcomingAppointments,
     appointmentDates,
+    leadsByStage,
+    leadsBySource,
+    totalPatientsAll,
+    recentLeadsTotal,
   };
 };

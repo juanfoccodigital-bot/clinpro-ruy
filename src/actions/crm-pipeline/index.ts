@@ -1,11 +1,12 @@
 "use server";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
 import {
+  crmContactActivitiesTable,
   crmContactChecklistTable,
   crmContactStagesTable,
   crmPipelineStagesTable,
@@ -133,6 +134,21 @@ export async function moveContactToStage(data: {
     });
   }
 
+  // Log activity
+  const stage = await db.query.crmPipelineStagesTable.findFirst({
+    where: eq(crmPipelineStagesTable.id, data.stageId),
+  });
+  if (stage) {
+    await db.insert(crmContactActivitiesTable).values({
+      clinicId,
+      patientId: data.patientId,
+      type: "stage_moved",
+      description: `Movido para ${stage.name}`,
+      metadata: { stageId: data.stageId, stageName: stage.name },
+      createdBy: session.user.name || session.user.email || null,
+    });
+  }
+
   revalidatePath("/crm");
 }
 
@@ -223,6 +239,7 @@ export async function updateContact(data: {
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+  const clinicId = session.user.clinic.id;
 
   const updateData: Record<string, unknown> = {};
   if (data.name !== undefined) updateData.name = data.name;
@@ -235,9 +252,18 @@ export async function updateContact(data: {
     .where(
       and(
         eq(patientsTable.id, data.id),
-        eq(patientsTable.clinicId, session.user.clinic.id),
+        eq(patientsTable.clinicId, clinicId),
       ),
     );
+
+  // Log activity
+  await db.insert(crmContactActivitiesTable).values({
+    clinicId,
+    patientId: data.id,
+    type: "data_updated",
+    description: "Dados atualizados",
+    createdBy: session.user.name || session.user.email || null,
+  });
 
   revalidatePath("/crm");
 }
@@ -266,6 +292,7 @@ export async function getStageChecklistItems(stageId: string) {
 export async function createChecklistItem(data: {
   stageId: string;
   label: string;
+  moveToStageId?: string | null;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
@@ -288,7 +315,29 @@ export async function createChecklistItem(data: {
     clinicId,
     label: data.label,
     order: maxOrder,
+    moveToStageId: data.moveToStageId || null,
   });
+
+  revalidatePath("/crm");
+}
+
+// Update checklist item rule (moveToStageId)
+export async function updateChecklistItemRule(data: {
+  itemId: string;
+  moveToStageId: string | null;
+}) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  await db
+    .update(crmStageChecklistItemsTable)
+    .set({ moveToStageId: data.moveToStageId })
+    .where(
+      and(
+        eq(crmStageChecklistItemsTable.id, data.itemId),
+        eq(crmStageChecklistItemsTable.clinicId, session.user.clinic.id),
+      ),
+    );
 
   revalidatePath("/crm");
 }
@@ -345,7 +394,7 @@ export async function toggleContactChecklist(data: {
     });
   }
 
-  // Auto-move: if marking complete, check if ALL checklist items for this stage are done
+  // Auto-move logic when marking as complete
   if (data.completed) {
     // Get the contact stage record to find current stageId and patientId
     const contactStage = await db.query.crmContactStagesTable.findFirst({
@@ -353,7 +402,54 @@ export async function toggleContactChecklist(data: {
     });
 
     if (contactStage) {
-      // Get all checklist items for the current stage
+      // Log checklist completion activity
+      const checklistItem = await db.query.crmStageChecklistItemsTable.findFirst({
+        where: eq(crmStageChecklistItemsTable.id, data.checklistItemId),
+      });
+      if (checklistItem) {
+        await db.insert(crmContactActivitiesTable).values({
+          clinicId,
+          patientId: contactStage.patientId,
+          type: "checklist_completed",
+          description: `Checklist concluído: ${checklistItem.label}`,
+          metadata: { checklistItemId: data.checklistItemId, label: checklistItem.label },
+          createdBy: session.user.name || session.user.email || null,
+        });
+
+        // Rule: if this specific item has moveToStageId, move the contact there
+        if (checklistItem.moveToStageId) {
+          const targetStage = await db.query.crmPipelineStagesTable.findFirst({
+            where: eq(crmPipelineStagesTable.id, checklistItem.moveToStageId),
+          });
+
+          if (targetStage) {
+            await db
+              .update(crmContactStagesTable)
+              .set({ stageId: targetStage.id })
+              .where(eq(crmContactStagesTable.id, data.contactStageId));
+
+            // Log the auto-move activity
+            await db.insert(crmContactActivitiesTable).values({
+              clinicId,
+              patientId: contactStage.patientId,
+              type: "stage_moved",
+              description: `Movido para ${targetStage.name}`,
+              metadata: {
+                stageId: targetStage.id,
+                stageName: targetStage.name,
+                trigger: "checklist_rule",
+                checklistItemLabel: checklistItem.label,
+              },
+              createdBy: session.user.name || session.user.email || null,
+            });
+
+            revalidatePath("/crm");
+            return { autoMoved: true, newStageName: targetStage.name };
+          }
+        }
+      }
+
+      // Fallback: if ALL items completed, move to next stage by order
       const stageItems = await db.query.crmStageChecklistItemsTable.findMany({
         where: and(
           eq(crmStageChecklistItemsTable.stageId, contactStage.stageId),
@@ -362,11 +458,8 @@ export async function toggleContactChecklist(data: {
       });
 
       if (stageItems.length > 0) {
-        // Get all completed checklist entries for this contact stage
         const completedItems = await db.query.crmContactChecklistTable.findMany({
-          where: and(
-            eq(crmContactChecklistTable.contactStageId, data.contactStageId),
-          ),
+          where: eq(crmContactChecklistTable.contactStageId, data.contactStageId),
         });
 
         const completedItemIds = new Set(
@@ -378,7 +471,6 @@ export async function toggleContactChecklist(data: {
         const allCompleted = stageItems.every((item) => completedItemIds.has(item.id));
 
         if (allCompleted) {
-          // Find the current stage to get its order
           const currentStage = await db.query.crmPipelineStagesTable.findFirst({
             where: and(
               eq(crmPipelineStagesTable.id, contactStage.stageId),
@@ -387,7 +479,6 @@ export async function toggleContactChecklist(data: {
           });
 
           if (currentStage) {
-            // Find the next stage by order
             const allStages = await db.query.crmPipelineStagesTable.findMany({
               where: eq(crmPipelineStagesTable.clinicId, clinicId),
               orderBy: [asc(crmPipelineStagesTable.order)],
@@ -396,11 +487,24 @@ export async function toggleContactChecklist(data: {
             const nextStage = allStages.find((s) => s.order > currentStage.order);
 
             if (nextStage) {
-              // Move the contact to the next stage
               await db
                 .update(crmContactStagesTable)
                 .set({ stageId: nextStage.id })
                 .where(eq(crmContactStagesTable.id, data.contactStageId));
+
+              // Log auto-move activity
+              await db.insert(crmContactActivitiesTable).values({
+                clinicId,
+                patientId: contactStage.patientId,
+                type: "stage_moved",
+                description: `Movido para ${nextStage.name}`,
+                metadata: {
+                  stageId: nextStage.id,
+                  stageName: nextStage.name,
+                  trigger: "all_checklist_completed",
+                },
+                createdBy: session.user.name || session.user.email || null,
+              });
 
               revalidatePath("/crm");
               return { autoMoved: true, newStageName: nextStage.name };
@@ -458,4 +562,47 @@ export async function getAllChecklistData() {
   }
 
   return { stageItems, contactChecklist };
+}
+
+// ============================================================
+// ACTIVITY LOG ACTIONS
+// ============================================================
+
+// Log a contact activity
+export async function logContactActivity(data: {
+  patientId: string;
+  type: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+}) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+  const clinicId = session.user.clinic.id;
+
+  await db.insert(crmContactActivitiesTable).values({
+    clinicId,
+    patientId: data.patientId,
+    type: data.type,
+    description: data.description,
+    metadata: data.metadata || null,
+    createdBy: session.user.name || session.user.email || null,
+  });
+
+  revalidatePath("/crm");
+}
+
+// Get all activities for a contact
+export async function getContactActivities(patientId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+
+  const activities = await db.query.crmContactActivitiesTable.findMany({
+    where: and(
+      eq(crmContactActivitiesTable.patientId, patientId),
+      eq(crmContactActivitiesTable.clinicId, session.user.clinic.id),
+    ),
+    orderBy: [desc(crmContactActivitiesTable.createdAt)],
+  });
+
+  return activities;
 }

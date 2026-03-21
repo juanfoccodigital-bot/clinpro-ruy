@@ -8,13 +8,18 @@ import { PageContainer, PageContent } from "@/components/ui/page-container";
 import { getDashboard } from "@/data/get-dashboard";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
+import { getMetaAdsData } from "@/actions/meta-ads";
 
 import AppointmentsChart from "./_components/appointments-chart";
 import AppointmentsStatusChart from "./_components/appointments-status-chart";
+import ConversionMetrics from "./_components/conversion-metrics";
 import { DatePicker } from "./_components/date-picker";
+import FunnelOverview from "./_components/funnel-overview";
+import LeadsSourceDonut from "./_components/leads-source-donut";
 import MiniCalendar from "./_components/mini-calendar";
 import RecentActivities from "./_components/recent-activities";
 import StatsCards from "./_components/stats-cards";
+import TrafficSummary from "./_components/traffic-summary";
 import UpcomingAppointments from "./_components/upcoming-appointments";
 
 dayjs.locale("pt-br");
@@ -54,13 +59,15 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     totalAppointments,
     totalPatients,
     activeConversations,
-    // topDoctors,
-    // topSpecialties,
     dailyAppointmentsData,
     appointmentsByStatus,
     recentActivities,
     upcomingAppointments,
     appointmentDates,
+    leadsByStage,
+    leadsBySource,
+    totalPatientsAll,
+    recentLeadsTotal,
   } = await getDashboard({
     from,
     to,
@@ -73,8 +80,31 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     },
   });
 
+  // Fetch Meta Ads data (optional - wrapped in try/catch)
+  let metaAdsData: {
+    totalSpend: number;
+    totalLeads: number;
+    avgCpl: number;
+    avgCtr: number;
+  } | null = null;
+  try {
+    const metaResult = await getMetaAdsData(from, to);
+    metaAdsData = {
+      totalSpend: metaResult.totalSpend,
+      totalLeads: metaResult.totalLeads,
+      avgCpl: metaResult.avgCpl,
+      avgCtr: metaResult.avgCtr,
+    };
+  } catch {
+    metaAdsData = null;
+  }
+
+  // Compute completed appointments count from status data
+  const completedAppointments =
+    appointmentsByStatus.find((s) => s.status === "completed")?.total ?? 0;
+
   const greeting = getGreeting();
-  const firstName = session.user.name?.split(" ")[0] || "Usuário";
+  const firstName = session.user.name?.split(" ")[0] || "Usuario";
   const clinicName = session.user.clinic?.name;
   const todayFormatted = dayjs().format("dddd, D [de] MMMM [de] YYYY");
 
@@ -126,19 +156,36 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
             />
           </div>
 
-          {/* Charts */}
+          {/* Row 1: Charts */}
           <div className="animate-fade-slide-up delay-2 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
             <AppointmentsChart dailyAppointmentsData={dailyAppointmentsData} />
             <AppointmentsStatusChart data={appointmentsByStatus} />
           </div>
 
-          {/* Activities */}
+          {/* Row 2: Funnel Overview */}
+          <div className="animate-fade-slide-up delay-2">
+            <FunnelOverview data={leadsByStage} />
+          </div>
+
+          {/* Row 3: Leads Source + Traffic + Conversion */}
+          <div className="animate-fade-slide-up delay-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <LeadsSourceDonut data={leadsBySource} />
+            <TrafficSummary data={metaAdsData} />
+            <ConversionMetrics
+              totalPatients={totalPatientsAll}
+              recentLeads={recentLeadsTotal}
+              totalAppointments={totalAppointments.total}
+              completedAppointments={completedAppointments}
+            />
+          </div>
+
+          {/* Row 4: Activities + Calendar */}
           <div className="animate-fade-slide-up delay-3 grid grid-cols-1 gap-4 md:grid-cols-2">
             <RecentActivities activities={recentActivities} />
             <MiniCalendar appointmentDates={appointmentDates} />
           </div>
 
-          {/* Upcoming */}
+          {/* Row 5: Upcoming */}
           <div className="animate-fade-slide-up delay-4">
             <UpcomingAppointments appointments={upcomingAppointments} />
           </div>

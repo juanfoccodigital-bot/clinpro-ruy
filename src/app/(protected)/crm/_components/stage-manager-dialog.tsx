@@ -2,6 +2,7 @@
 
 import {
   ArrowDown,
+  ArrowRight,
   ArrowUp,
   Check,
   CheckSquare,
@@ -22,6 +23,7 @@ import {
   deletePipelineStage,
   getStageChecklistItems,
   reorderPipelineStages,
+  updateChecklistItemRule,
   updatePipelineStage,
 } from "@/actions/crm-pipeline";
 import {
@@ -45,6 +47,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import type { PipelineStage } from "./contact-detail-dialog";
 
@@ -69,6 +78,7 @@ interface ChecklistItem {
   id: string;
   label: string;
   order: number;
+  moveToStageId: string | null;
 }
 
 interface StageManagerDialogProps {
@@ -94,6 +104,7 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
   // Checklist editing
   const [editChecklistItems, setEditChecklistItems] = useState<ChecklistItem[]>([]);
   const [newChecklistLabel, setNewChecklistLabel] = useState("");
+  const [newChecklistRule, setNewChecklistRule] = useState<string | null>(null);
   const [loadingChecklist, setLoadingChecklist] = useState(false);
 
   const handleCreateStage = () => {
@@ -178,10 +189,11 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
     setEditName(stage.name);
     setEditColor(stage.color);
     setNewChecklistLabel("");
+    setNewChecklistRule(null);
     setLoadingChecklist(true);
     try {
       const items = await getStageChecklistItems(stage.id);
-      setEditChecklistItems(items);
+      setEditChecklistItems(items as ChecklistItem[]);
     } catch {
       setEditChecklistItems([]);
     } finally {
@@ -196,11 +208,13 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
         await createChecklistItem({
           stageId: editingId,
           label: newChecklistLabel.trim(),
+          moveToStageId: newChecklistRule || null,
         });
         setNewChecklistLabel("");
+        setNewChecklistRule(null);
         // Reload checklist items
         const items = await getStageChecklistItems(editingId);
-        setEditChecklistItems(items);
+        setEditChecklistItems(items as ChecklistItem[]);
         toast.success("Item adicionado");
         router.refresh();
       } catch {
@@ -221,6 +235,23 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
       }
     });
   };
+
+  const handleUpdateRule = (itemId: string, moveToStageId: string | null) => {
+    startTransition(async () => {
+      try {
+        await updateChecklistItemRule({ itemId, moveToStageId });
+        setEditChecklistItems((prev) =>
+          prev.map((i) => (i.id === itemId ? { ...i, moveToStageId } : i)),
+        );
+        toast.success(moveToStageId ? "Regra definida" : "Regra removida");
+        router.refresh();
+      } catch {
+        toast.error("Erro ao atualizar regra");
+      }
+    });
+  };
+
+  const getStageById = (id: string) => stages.find((s) => s.id === id);
 
   const sortedStages = [...stages].sort((a, b) => a.order - b.order);
 
@@ -294,46 +325,135 @@ export default function StageManagerDialog({ stages }: StageManagerDialogProps) 
                       {loadingChecklist ? (
                         <p className="text-xs text-muted-foreground">Carregando...</p>
                       ) : (
-                        <div className="space-y-1">
-                          {editChecklistItems.map((item) => (
-                            <div
-                              key={item.id}
-                              className="flex items-center justify-between rounded border bg-background px-2 py-1"
-                            >
-                              <span className="text-xs">{item.label}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-5 w-5 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => handleDeleteChecklistItem(item.id)}
-                                disabled={isPending}
+                        <div className="space-y-1.5">
+                          {editChecklistItems.map((item) => {
+                            const ruleStage = item.moveToStageId
+                              ? getStageById(item.moveToStageId)
+                              : null;
+                            return (
+                              <div
+                                key={item.id}
+                                className="rounded border bg-background px-2 py-1.5 space-y-1"
                               >
-                                <X className="h-3 w-3" />
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs">{item.label}</span>
+                                    {ruleStage && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 border border-blue-200">
+                                        <div
+                                          className="h-1.5 w-1.5 rounded-full"
+                                          style={{ backgroundColor: ruleStage.color }}
+                                        />
+                                        <ArrowRight className="h-2.5 w-2.5" />
+                                        {ruleStage.name}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 w-5 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    onClick={() => handleDeleteChecklistItem(item.id)}
+                                    disabled={isPending}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                {/* Rule selector */}
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                    Regra:
+                                  </span>
+                                  <Select
+                                    value={item.moveToStageId || "none"}
+                                    onValueChange={(val) =>
+                                      handleUpdateRule(item.id, val === "none" ? null : val)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-6 text-[10px] flex-1">
+                                      <SelectValue placeholder="Sem regra" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">
+                                        <span className="text-muted-foreground">Sem regra</span>
+                                      </SelectItem>
+                                      {stages
+                                        .filter((s) => s.id !== stage.id)
+                                        .map((s) => (
+                                          <SelectItem key={s.id} value={s.id}>
+                                            <div className="flex items-center gap-1.5">
+                                              <div
+                                                className="h-2 w-2 rounded-full"
+                                                style={{ backgroundColor: s.color }}
+                                              />
+                                              Mover para: {s.name}
+                                            </div>
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {/* New checklist item form */}
+                          <div className="space-y-1 rounded border border-dashed p-1.5">
+                            <div className="flex gap-1">
+                              <Input
+                                value={newChecklistLabel}
+                                onChange={(e) => setNewChecklistLabel(e.target.value)}
+                                placeholder="Novo item do checklist"
+                                className="h-7 text-xs"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleAddChecklistItem();
+                                  }
+                                }}
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={handleAddChecklistItem}
+                                disabled={isPending || !newChecklistLabel.trim()}
+                              >
+                                <Plus className="h-3 w-3" />
                               </Button>
                             </div>
-                          ))}
-                          <div className="flex gap-1">
-                            <Input
-                              value={newChecklistLabel}
-                              onChange={(e) => setNewChecklistLabel(e.target.value)}
-                              placeholder="Novo item do checklist"
-                              className="h-7 text-xs"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  handleAddChecklistItem();
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                Regra:
+                              </span>
+                              <Select
+                                value={newChecklistRule || "none"}
+                                onValueChange={(val) =>
+                                  setNewChecklistRule(val === "none" ? null : val)
                                 }
-                              }}
-                            />
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2"
-                              onClick={handleAddChecklistItem}
-                              disabled={isPending || !newChecklistLabel.trim()}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
+                              >
+                                <SelectTrigger className="h-6 text-[10px] flex-1">
+                                  <SelectValue placeholder="Sem regra" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">
+                                    <span className="text-muted-foreground">Sem regra</span>
+                                  </SelectItem>
+                                  {stages
+                                    .filter((s) => s.id !== stage.id)
+                                    .map((s) => (
+                                      <SelectItem key={s.id} value={s.id}>
+                                        <div className="flex items-center gap-1.5">
+                                          <div
+                                            className="h-2 w-2 rounded-full"
+                                            style={{ backgroundColor: s.color }}
+                                          />
+                                          Mover para: {s.name}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                       )}

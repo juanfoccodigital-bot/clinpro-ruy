@@ -190,6 +190,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   systemLogs: many(systemLogsTable),
   crmPipelineStages: many(crmPipelineStagesTable),
   crmContactStages: many(crmContactStagesTable),
+  crmContactActivities: many(crmContactActivitiesTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -2097,6 +2098,10 @@ export const crmStageChecklistItemsTable = pgTable("crm_stage_checklist_items", 
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
   order: integer("order").notNull().default(0),
+  moveToStageId: uuid("move_to_stage_id").references(
+    () => crmPipelineStagesTable.id,
+    { onDelete: "set null" },
+  ),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -2138,6 +2143,36 @@ export const crmContactChecklistTableRelations = relations(
     checklistItem: one(crmStageChecklistItemsTable, {
       fields: [crmContactChecklistTable.checklistItemId],
       references: [crmStageChecklistItemsTable.id],
+    }),
+  }),
+);
+
+// CRM Contact Activities (activity log / history)
+export const crmContactActivitiesTable = pgTable("crm_contact_activities", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patientsTable.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  description: text("description").notNull(),
+  metadata: jsonb("metadata"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const crmContactActivitiesTableRelations = relations(
+  crmContactActivitiesTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [crmContactActivitiesTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    patient: one(patientsTable, {
+      fields: [crmContactActivitiesTable.patientId],
+      references: [patientsTable.id],
     }),
   }),
 );
