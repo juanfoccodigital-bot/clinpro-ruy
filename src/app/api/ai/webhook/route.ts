@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
     if (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+  } else if (process.env.NODE_ENV === "production") {
+    return Response.json({ error: "Webhook secret not configured" }, { status: 500 });
   }
 
   try {

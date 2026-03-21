@@ -15,9 +15,10 @@ export async function POST(request: NextRequest) {
   if (webhookSecret) {
     const signature = request.headers.get("x-webhook-secret") || request.headers.get("authorization");
     if (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
-      console.warn("Webhook signature mismatch - rejecting request");
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+  } else if (process.env.NODE_ENV === "production") {
+    return Response.json({ error: "Webhook secret not configured" }, { status: 500 });
   }
 
   try {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     const event = body.event;
     const instanceName = body.instance;
 
-    console.log(`[WhatsApp Webhook] Event: ${event}, Instance: ${instanceName}`);
+    // console.log(`[WhatsApp Webhook] Event: ${event}, Instance: ${instanceName}`);
 
     if (event === "messages.upsert" || event === "MESSAGES_UPSERT") {
       const data = body.data;
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       // Ignore group messages (JIDs ending with @g.us)
       const remoteJid = data.key?.remoteJid || "";
       if (remoteJid.endsWith("@g.us") || remoteJid.includes("@broadcast")) {
-        console.log(`[WhatsApp Webhook] Ignoring group/broadcast message from: ${remoteJid}`);
+        // console.log(`[WhatsApp Webhook] Ignoring group/broadcast message from: ${remoteJid}`);
         return NextResponse.json({ success: true });
       }
 
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
         externalId: data.key?.id || null,
       });
 
-      console.log(`[WhatsApp Webhook] Message saved: ${direction} from ${remotePhone} (${messageType})`);
+      // console.log(`[WhatsApp Webhook] Message saved: ${direction} from ${remotePhone} (${messageType})`);
 
       // Get or create contact
       let contact = await db.query.whatsappContactsTable.findFirst({

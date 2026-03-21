@@ -7,11 +7,11 @@ import { usersTable } from "@/db/schema";
 
 export const POST = async (request: Request) => {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
-    throw new Error("Stripe secret key not found");
+    return NextResponse.json({ error: "Stripe not configured" }, { status: 500 });
   }
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
-    throw new Error("Stripe signature not found");
+    return NextResponse.json({ error: "Missing signature" }, { status: 401 });
   }
   const text = await request.text();
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
