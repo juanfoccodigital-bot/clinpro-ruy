@@ -14,4 +14,6 @@ export const addAppointmentSchema = z.object({
   appointmentPriceInCents: z.number().min(1, {
     message: "Valor da consulta é obrigatório.",
   }),
+  procedureId: z.string().uuid().optional(),
+  notes: z.string().optional(),
 });

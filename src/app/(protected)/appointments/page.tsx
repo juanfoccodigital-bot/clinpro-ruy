@@ -9,7 +9,7 @@ import {
   PageContent,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
-import { appointmentsTable, patientsTable } from "@/db/schema";
+import { appointmentsTable, patientsTable, proceduresTable } from "@/db/schema";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
 
@@ -20,17 +20,24 @@ const AppointmentsPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  const [patients, appointments] = await Promise.all([
+  const clinicId = session!.user.clinic!.id;
+
+  const [patients, appointments, procedures] = await Promise.all([
     db.query.patientsTable.findMany({
-      where: eq(patientsTable.clinicId, session!.user.clinic!.id),
+      where: eq(patientsTable.clinicId, clinicId),
     }),
     db.query.appointmentsTable.findMany({
-      where: eq(appointmentsTable.clinicId, session!.user.clinic!.id),
+      where: eq(appointmentsTable.clinicId, clinicId),
       with: {
         patient: true,
       },
     }),
+    db.query.proceduresTable.findMany({
+      where: eq(proceduresTable.clinicId, clinicId),
+    }),
   ]);
+
+  const activeProcedures = procedures.filter((p) => p.isActive);
 
   return (
     <WithAuthentication mustHaveClinic>
@@ -40,7 +47,10 @@ const AppointmentsPage = async () => {
           title="Agenda de Procedimentos"
           description="Gerencie os procedimentos da sua clinica"
         >
-          <AddAppointmentButton patients={patients} />
+          <AddAppointmentButton
+            patients={patients}
+            procedures={activeProcedures}
+          />
         </PageBanner>
         <PageContent>
           <div className="animate-fade-slide-up delay-1">

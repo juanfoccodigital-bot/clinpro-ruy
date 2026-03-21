@@ -78,6 +78,7 @@ function buildSections(clinicType?: string | null): SidebarSection[] {
       label: "Atendimento",
       items: [
         { title: terms.appointments, url: "/appointments", icon: CalendarDays },
+        { title: "Procedimentos", url: "/procedimentos", icon: ClipboardList },
         { title: "Agenda", url: "/agenda", icon: CalendarRange },
         { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
       ],

@@ -164,6 +164,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   doctorScheduleBlocks: many(doctorScheduleBlocksTable),
   waitingList: many(waitingListTable),
   appointmentReminders: many(appointmentRemindersTable),
+  procedures: many(proceduresTable),
   stockItems: many(stockItemsTable),
   stockMovements: many(stockMovementsTable),
   employees: many(employeesTable),
@@ -286,6 +287,8 @@ export const appointmentsTable = pgTable("appointments", {
   doctorId: uuid("doctor_id")
     .notNull()
     .references(() => doctorsTable.id, { onDelete: "cascade" }),
+  procedureId: uuid("procedure_id").references(() => proceduresTable.id),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -306,6 +309,10 @@ export const appointmentsTableRelations = relations(
     doctor: one(doctorsTable, {
       fields: [appointmentsTable.doctorId],
       references: [doctorsTable.id],
+    }),
+    procedure: one(proceduresTable, {
+      fields: [appointmentsTable.procedureId],
+      references: [proceduresTable.id],
     }),
     reminders: many(appointmentRemindersTable),
   }),
@@ -712,6 +719,7 @@ export const financialTransactionsTable = pgTable("financial_transactions", {
     () => appointmentsTable.id,
     { onDelete: "set null" },
   ),
+  procedureId: uuid("procedure_id").references(() => proceduresTable.id),
   notes: text("notes"),
   paymentMachineId: uuid("payment_machine_id").references(
     () => paymentMachinesTable.id,
@@ -750,6 +758,10 @@ export const financialTransactionsTableRelations = relations(
     paymentMachine: one(paymentMachinesTable, {
       fields: [financialTransactionsTable.paymentMachineId],
       references: [paymentMachinesTable.id],
+    }),
+    procedure: one(proceduresTable, {
+      fields: [financialTransactionsTable.procedureId],
+      references: [proceduresTable.id],
     }),
   }),
 );
@@ -2212,6 +2224,68 @@ export const systemLogsTableRelations = relations(
     user: one(usersTable, {
       fields: [systemLogsTable.userId],
       references: [usersTable.id],
+    }),
+  }),
+);
+
+// ============================================================
+// PROCEDIMENTOS (Procedures catalog)
+// ============================================================
+
+export const proceduresTable = pgTable("procedures", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull().default("general"),
+  defaultPriceInCents: integer("default_price_in_cents").notNull().default(0),
+  durationMinutes: integer("duration_minutes").notNull().default(60),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const proceduresTableRelations = relations(
+  proceduresTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [proceduresTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    stockItems: many(procedureStockItemsTable),
+    appointments: many(appointmentsTable),
+    financialTransactions: many(financialTransactionsTable),
+  }),
+);
+
+export const procedureStockItemsTable = pgTable("procedure_stock_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  procedureId: uuid("procedure_id")
+    .notNull()
+    .references(() => proceduresTable.id, { onDelete: "cascade" }),
+  stockItemId: uuid("stock_item_id")
+    .notNull()
+    .references(() => stockItemsTable.id, { onDelete: "cascade" }),
+  quantityUsed: numeric("quantity_used", { precision: 10, scale: 2 })
+    .notNull()
+    .default("1"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const procedureStockItemsTableRelations = relations(
+  procedureStockItemsTable,
+  ({ one }) => ({
+    procedure: one(proceduresTable, {
+      fields: [procedureStockItemsTable.procedureId],
+      references: [proceduresTable.id],
+    }),
+    stockItem: one(stockItemsTable, {
+      fields: [procedureStockItemsTable.stockItemId],
+      references: [stockItemsTable.id],
     }),
   }),
 );

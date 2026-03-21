@@ -46,13 +46,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { patientsTable } from "@/db/schema";
+import { patientsTable, proceduresTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   patientId: z.string().min(1, {
     message: "Paciente é obrigatório.",
   }),
+  procedureId: z.string().optional(),
   appointmentPrice: z.number().min(1, {
     message: "Valor do procedimento é obrigatório.",
   }),
@@ -68,11 +69,13 @@ const formSchema = z.object({
 interface AddAppointmentFormProps {
   isOpen: boolean;
   patients: (typeof patientsTable.$inferSelect)[];
+  procedures?: (typeof proceduresTable.$inferSelect)[];
   onSuccess?: () => void;
 }
 
 const AddAppointmentForm = ({
   patients,
+  procedures,
   onSuccess,
   isOpen,
 }: AddAppointmentFormProps) => {
@@ -81,6 +84,7 @@ const AddAppointmentForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientId: "",
+      procedureId: "",
       appointmentPrice: 0,
       date: undefined,
       time: "",
@@ -105,6 +109,7 @@ const AddAppointmentForm = ({
     if (isOpen) {
       form.reset({
         patientId: "",
+        procedureId: "",
         appointmentPrice: 0,
         date: undefined,
         time: "",
@@ -127,6 +132,7 @@ const AddAppointmentForm = ({
     createAppointmentAction.execute({
       ...values,
       appointmentPriceInCents: values.appointmentPrice * 100,
+      procedureId: values.procedureId || undefined,
     });
   };
 
@@ -137,6 +143,16 @@ const AddAppointmentForm = ({
   };
 
   const isDateTimeEnabled = !!selectedPatientId;
+
+  const handleProcedureChange = (procedureId: string) => {
+    form.setValue("procedureId", procedureId);
+    if (procedures) {
+      const selected = procedures.find((p) => p.id === procedureId);
+      if (selected) {
+        form.setValue("appointmentPrice", selected.defaultPriceInCents / 100);
+      }
+    }
+  };
 
   return (
     <DialogContent className="sm:max-w-[500px]">
@@ -176,7 +192,35 @@ const AddAppointmentForm = ({
             )}
           />
 
-          {/* Especialista hidden - campo removido da UI */}
+          {procedures && procedures.length > 0 && (
+            <FormField
+              control={form.control}
+              name="procedureId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Procedimento</FormLabel>
+                  <Select
+                    onValueChange={handleProcedureChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione um procedimento (opcional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {procedures.map((procedure) => (
+                        <SelectItem key={procedure.id} value={procedure.id}>
+                          {procedure.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

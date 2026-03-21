@@ -40,6 +40,8 @@ export const addAppointment = protectedWithClinicActionClient
       appointmentPriceInCents: parsedInput.appointmentPriceInCents,
       clinicId: ctx.user.clinic.id,
       date: appointmentDateTime,
+      procedureId: parsedInput.procedureId || null,
+      notes: parsedInput.notes || null,
     });
 
     const { ipAddress, userAgent } = await getRequestInfo();

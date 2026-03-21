@@ -83,9 +83,10 @@ const allNavGroups: NavGroup[] = [
   {
     title: "Atendimento",
     icon: CalendarDays,
-    matchPaths: ["/appointments", "/agenda", "/whatsapp"],
+    matchPaths: ["/appointments", "/agenda", "/whatsapp", "/procedimentos"],
     items: [
-      { title: "Agenda de Procedimentos", url: "/appointments", icon: CalendarDays },
+      { title: "Procedimentos", url: "/procedimentos", icon: ClipboardList },
+      { title: "Agendamentos", url: "/appointments", icon: CalendarDays },
       { title: "Agenda", url: "/agenda", icon: CalendarRange },
       { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
     ],
