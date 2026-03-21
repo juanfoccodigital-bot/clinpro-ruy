@@ -36,6 +36,7 @@ import {
 import {
   financialTransactionsTable,
   patientsTable,
+  paymentMachinesTable,
 } from "@/db/schema";
 
 import UpsertTransactionForm from "./upsert-transaction-form";
@@ -45,11 +46,13 @@ interface TransactionTableActionsProps {
     patient: typeof patientsTable.$inferSelect | null;
   };
   patients: (typeof patientsTable.$inferSelect)[];
+  paymentMachines?: (typeof paymentMachinesTable.$inferSelect)[];
 }
 
 const TransactionTableActions = ({
   transaction,
   patients,
+  paymentMachines = [],
 }: TransactionTableActionsProps) => {
   const [upsertDialogIsOpen, setUpsertDialogIsOpen] = useState(false);
 
@@ -135,6 +138,7 @@ const TransactionTableActions = ({
           isOpen={upsertDialogIsOpen}
           transaction={transaction}
           patients={patients}
+          paymentMachines={paymentMachines}
           onSuccess={() => setUpsertDialogIsOpen(false)}
         />
       </Dialog>

@@ -14,6 +14,7 @@ import { db } from "@/db";
 import {
   financialTransactionsTable,
   patientsTable,
+  paymentMachinesTable,
 } from "@/db/schema";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
@@ -39,6 +40,11 @@ const TransacoesPage = async () => {
     where: eq(patientsTable.clinicId, clinicId),
   });
 
+  const paymentMachines = await db.query.paymentMachinesTable.findMany({
+    where: eq(paymentMachinesTable.clinicId, clinicId),
+    orderBy: (table, { asc }) => [asc(table.name)],
+  });
+
   return (
     <WithAuthentication mustHaveClinic>
       <PageContainer>
@@ -50,13 +56,14 @@ const TransacoesPage = async () => {
             </PageDescription>
           </PageHeaderContent>
           <PageActions>
-            <AddTransactionButton patients={patients} />
+            <AddTransactionButton patients={patients} paymentMachines={paymentMachines} />
           </PageActions>
         </PageHeader>
         <PageContent>
           <TransactionDataTable
             data={transactions}
             patients={patients}
+            paymentMachines={paymentMachines}
           />
         </PageContent>
       </PageContainer>

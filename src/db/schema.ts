@@ -3,6 +3,7 @@ import {
   boolean,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -156,6 +157,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   documents: many(documentsTable),
   documentTemplates: many(documentTemplatesTable),
   financialTransactions: many(financialTransactionsTable),
+  paymentMachines: many(paymentMachinesTable),
   doctorCommissions: many(doctorCommissionsTable),
   insuranceProviders: many(insuranceProvidersTable),
   insurancePriceTables: many(insurancePriceTablesTable),
@@ -594,6 +596,59 @@ export const documentTemplatesTableRelations = relations(
 // FINANCEIRO (Fase 3)
 // ============================================================
 
+// Payment Machines (Maquininhas)
+export const paymentMachinesTable = pgTable("payment_machines", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  provider: text("provider").notNull(),
+  debitFee: numeric("debit_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  creditFee: numeric("credit_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit2xFee: numeric("credit_2x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit3xFee: numeric("credit_3x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit4xFee: numeric("credit_4x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit5xFee: numeric("credit_5x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit6xFee: numeric("credit_6x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  credit7_12xFee: numeric("credit_7_12x_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  pixFee: numeric("pix_fee", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const paymentMachinesTableRelations = relations(
+  paymentMachinesTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [paymentMachinesTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    financialTransactions: many(financialTransactionsTable),
+  }),
+);
+
 export const transactionTypeEnum = pgEnum("transaction_type", [
   "income",
   "expense",
@@ -657,6 +712,15 @@ export const financialTransactionsTable = pgTable("financial_transactions", {
     { onDelete: "set null" },
   ),
   notes: text("notes"),
+  paymentMachineId: uuid("payment_machine_id").references(
+    () => paymentMachinesTable.id,
+  ),
+  installments: integer("installments").default(1),
+  feePercentage: numeric("fee_percentage", { precision: 5, scale: 2 }).default(
+    "0",
+  ),
+  feeAmount: integer("fee_amount").default(0),
+  netAmount: integer("net_amount"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -681,6 +745,10 @@ export const financialTransactionsTableRelations = relations(
     appointment: one(appointmentsTable, {
       fields: [financialTransactionsTable.appointmentId],
       references: [appointmentsTable.id],
+    }),
+    paymentMachine: one(paymentMachinesTable, {
+      fields: [financialTransactionsTable.paymentMachineId],
+      references: [paymentMachinesTable.id],
     }),
   }),
 );

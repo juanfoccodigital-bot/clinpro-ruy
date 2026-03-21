@@ -224,7 +224,7 @@ export default function ContactDetailDialog({
     if (!contact.stage?.id) return;
     startTransition(async () => {
       try {
-        await toggleContactChecklist({
+        const result = await toggleContactChecklist({
           contactStageId: contact.stage!.id,
           checklistItemId,
           completed: !currentCompleted,
@@ -249,6 +249,10 @@ export default function ContactDetailDialog({
             },
           ];
         });
+        if (result?.autoMoved && result.newStageName) {
+          toast.success(`Checklist completo! Contato movido para "${result.newStageName}"`);
+          onOpenChange(false);
+        }
         router.refresh();
       } catch {
         toast.error("Erro ao atualizar checklist");

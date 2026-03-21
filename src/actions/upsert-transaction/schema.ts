@@ -50,6 +50,11 @@ export const upsertTransactionSchema = z.object({
   doctorId: z.string().uuid().optional(),
   appointmentId: z.string().uuid().optional(),
   notes: z.string().optional(),
+  paymentMachineId: z.string().uuid().optional(),
+  installments: z.number().int().min(1).max(12).optional(),
+  feePercentage: z.string().optional(),
+  feeAmount: z.number().int().optional(),
+  netAmount: z.number().int().optional(),
 });
 
 export type UpsertTransactionSchema = z.infer<typeof upsertTransactionSchema>;

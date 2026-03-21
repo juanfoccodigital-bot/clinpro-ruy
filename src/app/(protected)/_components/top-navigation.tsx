@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ClipboardList,
   Contact,
+  CreditCard,
   DollarSign,
   Headphones,
   LayoutDashboard,
@@ -19,6 +20,7 @@ import {
   Menu,
   MessageCircle,
   Package,
+  Receipt,
   Settings,
   Shield,
   TrendingUp,
@@ -116,8 +118,13 @@ const allNavGroups: NavGroup[] = [
   },
   {
     title: "Financeiro",
-    url: "/financeiro",
     icon: DollarSign,
+    matchPaths: ["/financeiro"],
+    items: [
+      { title: "Visao Geral", url: "/financeiro", icon: DollarSign },
+      { title: "Transacoes", url: "/financeiro/transacoes", icon: Receipt },
+      { title: "Maquininhas", url: "/financeiro/maquininhas", icon: CreditCard },
+    ],
   },
   {
     title: "Marketing",

@@ -315,9 +315,10 @@ export async function toggleContactChecklist(data: {
   contactStageId: string;
   checklistItemId: string;
   completed: boolean;
-}) {
+}): Promise<{ autoMoved: boolean; newStageName?: string }> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
+  const clinicId = session.user.clinic.id;
 
   // Check if record exists
   const existing = await db.query.crmContactChecklistTable.findFirst({
@@ -344,7 +345,74 @@ export async function toggleContactChecklist(data: {
     });
   }
 
+  // Auto-move: if marking complete, check if ALL checklist items for this stage are done
+  if (data.completed) {
+    // Get the contact stage record to find current stageId and patientId
+    const contactStage = await db.query.crmContactStagesTable.findFirst({
+      where: eq(crmContactStagesTable.id, data.contactStageId),
+    });
+
+    if (contactStage) {
+      // Get all checklist items for the current stage
+      const stageItems = await db.query.crmStageChecklistItemsTable.findMany({
+        where: and(
+          eq(crmStageChecklistItemsTable.stageId, contactStage.stageId),
+          eq(crmStageChecklistItemsTable.clinicId, clinicId),
+        ),
+      });
+
+      if (stageItems.length > 0) {
+        // Get all completed checklist entries for this contact stage
+        const completedItems = await db.query.crmContactChecklistTable.findMany({
+          where: and(
+            eq(crmContactChecklistTable.contactStageId, data.contactStageId),
+          ),
+        });
+
+        const completedItemIds = new Set(
+          completedItems
+            .filter((item) => item.completed)
+            .map((item) => item.checklistItemId),
+        );
+
+        const allCompleted = stageItems.every((item) => completedItemIds.has(item.id));
+
+        if (allCompleted) {
+          // Find the current stage to get its order
+          const currentStage = await db.query.crmPipelineStagesTable.findFirst({
+            where: and(
+              eq(crmPipelineStagesTable.id, contactStage.stageId),
+              eq(crmPipelineStagesTable.clinicId, clinicId),
+            ),
+          });
+
+          if (currentStage) {
+            // Find the next stage by order
+            const allStages = await db.query.crmPipelineStagesTable.findMany({
+              where: eq(crmPipelineStagesTable.clinicId, clinicId),
+              orderBy: [asc(crmPipelineStagesTable.order)],
+            });
+
+            const nextStage = allStages.find((s) => s.order > currentStage.order);
+
+            if (nextStage) {
+              // Move the contact to the next stage
+              await db
+                .update(crmContactStagesTable)
+                .set({ stageId: nextStage.id })
+                .where(eq(crmContactStagesTable.id, data.contactStageId));
+
+              revalidatePath("/crm");
+              return { autoMoved: true, newStageName: nextStage.name };
+            }
+          }
+        }
+      }
+    }
+  }
+
   revalidatePath("/crm");
+  return { autoMoved: false };
 }
 
 // Get contact checklist status

@@ -12,13 +12,14 @@ import { upsertTransactionSchema } from "./schema";
 export const upsertTransaction = protectedWithClinicActionClient
   .schema(upsertTransactionSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { dueDate, paymentDate, ...rest } = parsedInput;
+    const { dueDate, paymentDate, paymentMachineId, ...rest } = parsedInput;
 
     const values = {
       ...rest,
       clinicId: ctx.user.clinic.id,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       paymentDate: paymentDate ? new Date(paymentDate) : undefined,
+      paymentMachineId: paymentMachineId || null,
     };
 
     await db

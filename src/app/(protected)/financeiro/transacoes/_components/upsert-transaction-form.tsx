@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -36,7 +36,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   financialTransactionsTable,
   patientsTable,
+  paymentMachinesTable,
 } from "@/db/schema";
+
+type PaymentMachine = typeof paymentMachinesTable.$inferSelect;
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"], {
@@ -90,18 +93,41 @@ const formSchema = z.object({
   paymentDate: z.string().optional(),
   patientId: z.string().optional(),
   notes: z.string().optional(),
+  paymentMachineId: z.string().optional(),
+  installments: z.string().optional(),
 });
+
+function getFeePercentage(
+  machine: PaymentMachine,
+  paymentMethod: string,
+  installments: number,
+): number {
+  if (paymentMethod === "debit_card") return Number(machine.debitFee);
+  if (paymentMethod === "pix") return Number(machine.pixFee);
+  if (paymentMethod === "credit_card") {
+    if (installments <= 1) return Number(machine.creditFee);
+    if (installments === 2) return Number(machine.credit2xFee);
+    if (installments === 3) return Number(machine.credit3xFee);
+    if (installments === 4) return Number(machine.credit4xFee);
+    if (installments === 5) return Number(machine.credit5xFee);
+    if (installments === 6) return Number(machine.credit6xFee);
+    if (installments >= 7) return Number(machine.credit7_12xFee);
+  }
+  return 0;
+}
 
 interface UpsertTransactionFormProps {
   isOpen: boolean;
   transaction?: typeof financialTransactionsTable.$inferSelect;
   patients: (typeof patientsTable.$inferSelect)[];
+  paymentMachines?: PaymentMachine[];
   onSuccess?: () => void;
 }
 
 const UpsertTransactionForm = ({
   transaction,
   patients,
+  paymentMachines = [],
   onSuccess,
   isOpen,
 }: UpsertTransactionFormProps) => {
@@ -125,6 +151,8 @@ const UpsertTransactionForm = ({
         : "",
       patientId: transaction?.patientId ?? undefined,
       notes: transaction?.notes ?? "",
+      paymentMachineId: transaction?.paymentMachineId ?? undefined,
+      installments: transaction?.installments?.toString() ?? "1",
     },
   });
 
@@ -147,9 +175,39 @@ const UpsertTransactionForm = ({
           : "",
         patientId: transaction?.patientId ?? undefined,
         notes: transaction?.notes ?? "",
+        paymentMachineId: transaction?.paymentMachineId ?? undefined,
+        installments: transaction?.installments?.toString() ?? "1",
       });
     }
   }, [isOpen, form, transaction]);
+
+  const paymentMethod = useWatch({ control: form.control, name: "paymentMethod" });
+  const paymentMachineId = useWatch({ control: form.control, name: "paymentMachineId" });
+  const installmentsStr = useWatch({ control: form.control, name: "installments" });
+  const amountInReais = useWatch({ control: form.control, name: "amountInReais" });
+
+  const showMachineSelect =
+    paymentMethod === "credit_card" ||
+    paymentMethod === "debit_card" ||
+    paymentMethod === "pix";
+
+  const showInstallments = paymentMethod === "credit_card";
+
+  const selectedMachine = useMemo(() => {
+    if (!paymentMachineId) return null;
+    return paymentMachines.find((m) => m.id === paymentMachineId) ?? null;
+  }, [paymentMachineId, paymentMachines]);
+
+  const feeCalc = useMemo(() => {
+    if (!selectedMachine || !paymentMethod || !amountInReais) return null;
+    const amount = Number(amountInReais);
+    if (isNaN(amount) || amount <= 0) return null;
+    const installments = Number(installmentsStr) || 1;
+    const feePercent = getFeePercentage(selectedMachine, paymentMethod, installments);
+    const feeAmountReais = (amount * feePercent) / 100;
+    const netAmountReais = amount - feeAmountReais;
+    return { feePercent, feeAmountReais, netAmountReais };
+  }, [selectedMachine, paymentMethod, installmentsStr, amountInReais]);
 
   const upsertTransactionAction = useAction(upsertTransaction, {
     onSuccess: () => {
@@ -163,19 +221,42 @@ const UpsertTransactionForm = ({
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const amountInCents = Math.round(Number(values.amountInReais) * 100);
+    const installments = Number(values.installments) || 1;
+
+    let feePercentage: string | undefined;
+    let feeAmount: number | undefined;
+    let netAmount: number | undefined;
+
+    if (feeCalc) {
+      feePercentage = feeCalc.feePercent.toFixed(2);
+      feeAmount = Math.round(feeCalc.feeAmountReais * 100);
+      netAmount = Math.round(feeCalc.netAmountReais * 100);
+    }
+
     upsertTransactionAction.execute({
       ...values,
       id: transaction?.id,
       amountInCents,
+      installments,
       dueDate: values.dueDate || undefined,
       paymentDate: values.paymentDate || undefined,
       patientId: values.patientId || undefined,
+      paymentMachineId: values.paymentMachineId || undefined,
       notes: values.notes || undefined,
+      feePercentage,
+      feeAmount,
+      netAmount,
     });
   };
 
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(val);
+
   return (
-    <DialogContent className="sm:max-w-2xl">
+    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
           {transaction ? "Editar transacao" : "Adicionar transacao"}
@@ -326,6 +407,83 @@ const UpsertTransactionForm = ({
               )}
             />
           </div>
+
+          {/* Payment Machine & Installments */}
+          {showMachineSelect && paymentMachines.length > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="paymentMachineId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Maquininha</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selecione a maquininha" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {paymentMachines
+                          .filter((m) => m.isActive)
+                          .map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name} ({m.provider})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {showInstallments && (
+                <FormField
+                  control={form.control}
+                  name="installments"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Parcelas</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Parcelas" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                            (n) => (
+                              <SelectItem key={n} value={n.toString()}>
+                                {n}x
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Fee calculation display */}
+          {feeCalc && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
+              <p className="text-sm font-medium text-amber-900">
+                Taxa: {formatCurrency(feeCalc.feeAmountReais)} ({feeCalc.feePercent.toFixed(2)}%)
+                {" · "}
+                Liquido: {formatCurrency(feeCalc.netAmountReais)}
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-4">
             <FormField

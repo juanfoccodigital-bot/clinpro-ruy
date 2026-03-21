@@ -2,6 +2,7 @@ import { and, eq, gte, lt, sql } from "drizzle-orm";
 import {
   AlertTriangleIcon,
   ArrowRightIcon,
+  CreditCard,
   TrendingDownIcon,
   TrendingUpIcon,
   WalletIcon,
@@ -180,6 +181,12 @@ const FinanceiroPage = async () => {
               <Button variant="outline">
                 Transacoes
                 <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link href="/financeiro/maquininhas">
+              <Button variant="outline">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Maquininhas
               </Button>
             </Link>
           </div>

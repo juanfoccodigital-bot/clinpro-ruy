@@ -36,11 +36,15 @@ export default function AdsStatsCards({
   avgFrequency,
   leadCampaignSpend,
 }: AdsStatsCardsProps) {
+  const leadsPercent = totalSpend > 0 ? Math.round((leadCampaignSpend / totalSpend) * 100) : 0;
+  const reconhecimentoPercent = 100 - leadsPercent;
+  const reconhecimentoSpend = totalSpend - leadCampaignSpend;
+
   const stats = [
     {
       title: "Investimento Total",
       value: `R$ ${totalSpend.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-      subtitle: `R$ ${leadCampaignSpend.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em leads`,
+      subtitle: `R$ ${leadCampaignSpend.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em leads (${leadsPercent}%) · ${reconhecimentoPercent}% reconhecimento`,
       icon: DollarSign,
       gradient: "from-amber-500 to-amber-600",
       size: "large",
@@ -107,6 +111,14 @@ export default function AdsStatsCards({
       gradient: "from-teal-500 to-teal-600",
       size: "small",
     },
+    {
+      title: "Invest. Reconhecimento",
+      value: `R$ ${reconhecimentoSpend.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      subtitle: `${reconhecimentoPercent}% do total`,
+      icon: Eye,
+      gradient: "from-purple-500 to-purple-600",
+      size: "small",
+    },
   ];
 
   const largeStats = stats.filter((s) => s.size === "large");
@@ -157,6 +169,9 @@ export default function AdsStatsCards({
               <div>
                 <p className="text-xs text-muted-foreground">{stat.title}</p>
                 <p className="text-sm font-bold">{stat.value}</p>
+                {"subtitle" in stat && stat.subtitle && (
+                  <p className="text-[10px] text-muted-foreground">{stat.subtitle}</p>
+                )}
               </div>
             </div>
           );

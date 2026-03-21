@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   financialTransactionsTable,
   patientsTable,
+  paymentMachinesTable,
 } from "@/db/schema";
 
 import TransactionTableActions from "./transaction-table-actions";
@@ -65,10 +66,12 @@ const formatCurrency = (amountInCents: number) => {
 
 interface CreateTransactionTableColumnsProps {
   patients: (typeof patientsTable.$inferSelect)[];
+  paymentMachines?: (typeof paymentMachinesTable.$inferSelect)[];
 }
 
 export const createTransactionTableColumns = ({
   patients,
+  paymentMachines = [],
 }: CreateTransactionTableColumnsProps): ColumnDef<Transaction>[] => [
   {
     id: "description",
@@ -151,6 +154,7 @@ export const createTransactionTableColumns = ({
         <TransactionTableActions
           transaction={transaction}
           patients={patients}
+          paymentMachines={paymentMachines}
         />
       );
     },

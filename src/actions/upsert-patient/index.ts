@@ -12,18 +12,17 @@ import { upsertPatientSchema } from "./schema";
 export const upsertPatient = protectedWithClinicActionClient
   .schema(upsertPatientSchema)
   .action(async ({ parsedInput, ctx }) => {
+    const values = {
+      ...parsedInput,
+      email: parsedInput.email || "",
+      clinicId: ctx.user.clinic.id,
+    };
     await db
       .insert(patientsTable)
-      .values({
-        ...parsedInput,
-        id: parsedInput.id,
-        clinicId: ctx.user.clinic.id,
-      })
+      .values(values)
       .onConflictDoUpdate({
         target: [patientsTable.id],
-        set: {
-          ...parsedInput,
-        },
+        set: values,
       });
     const isUpdate = !!parsedInput.id;
     const { ipAddress, userAgent } = await getRequestInfo();

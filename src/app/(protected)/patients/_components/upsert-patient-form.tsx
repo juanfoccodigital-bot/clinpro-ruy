@@ -39,9 +39,7 @@ const formSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome é obrigatório.",
   }),
-  email: z.string().email({
-    message: "Email inválido.",
-  }),
+  email: z.string().email({ message: "Email inválido." }).optional().or(z.literal("")),
   phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
