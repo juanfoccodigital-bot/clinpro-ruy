@@ -4,11 +4,11 @@ import dayjs from "dayjs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getMetaAdsData } from "@/actions/meta-ads";
 import { PageContainer, PageContent } from "@/components/ui/page-container";
 import { getDashboard } from "@/data/get-dashboard";
 import WithAuthentication from "@/hocs/with-authentication";
 import { auth } from "@/lib/auth";
-import { getMetaAdsData } from "@/actions/meta-ads";
 
 import AppointmentsChart from "./_components/appointments-chart";
 import AppointmentsStatusChart from "./_components/appointments-status-chart";
