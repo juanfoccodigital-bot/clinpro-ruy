@@ -66,7 +66,7 @@ const MiniCalendar = ({ appointmentDates }: MiniCalendarProps) => {
             hasAppointment: {
               fontWeight: "bold",
               textDecoration: "underline",
-              textDecorationColor: "#D4A017",
+              textDecorationColor: "#D08C32",
               textUnderlineOffset: "4px",
             },
           }}

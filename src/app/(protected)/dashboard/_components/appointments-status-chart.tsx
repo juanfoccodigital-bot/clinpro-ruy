@@ -11,9 +11,9 @@ interface AppointmentsStatusChartProps {
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  scheduled: { label: "Agendado", color: "#D4A017" },
-  confirmed: { label: "Confirmado", color: "#C49A00" },
-  arrived: { label: "Chegou", color: "#E6B422" },
+  scheduled: { label: "Agendado", color: "#D08C32" },
+  confirmed: { label: "Confirmado", color: "#D3AB32" },
+  arrived: { label: "Chegou", color: "#D08C32" },
   in_service: { label: "Em Atendimento", color: "#818CF8" },
   completed: { label: "Completado", color: "#B8860B" },
   cancelled: { label: "Cancelado", color: "#EF4444" },

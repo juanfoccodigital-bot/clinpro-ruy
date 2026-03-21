@@ -97,9 +97,9 @@ export const clinicsTable = pgTable("clinics", {
   name: text("name").notNull(),
   // Whitelabel
   logoUrl: text("logo_url"),
-  primaryColor: text("primary_color").default("#D4A017"),
-  secondaryColor: text("secondary_color").default("#C49A00"),
-  accentColor: text("accent_color").default("#E6B422"),
+  primaryColor: text("primary_color").default("#D08C32"),
+  secondaryColor: text("secondary_color").default("#D3AB32"),
+  accentColor: text("accent_color").default("#D08C32"),
   // Clinic niche: medical_clinic | dental | aesthetics | physiotherapy | psychology | other
   clinicType: text("clinic_type").default("medical_clinic"),
   // Subscription plan: starter | professional | enterprise
@@ -1716,7 +1716,7 @@ export const whatsappLabelsTable = pgTable("whatsapp_labels", {
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  color: text("color").notNull().default("#D4A017"),
+  color: text("color").notNull().default("#D08C32"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -2028,7 +2028,7 @@ export const crmPipelineStagesTable = pgTable("crm_pipeline_stages", {
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  color: text("color").notNull().default("#D4A017"),
+  color: text("color").notNull().default("#D08C32"),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

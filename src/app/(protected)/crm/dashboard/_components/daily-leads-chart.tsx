@@ -45,7 +45,7 @@ const DailyLeadsChart = ({ data, from, to }: DailyLeadsChartProps) => {
   const chartConfig = {
     leads: {
       label: "Leads",
-      color: "#D4A017",
+      color: "#D08C32",
     },
   } satisfies ChartConfig;
 
@@ -79,8 +79,8 @@ const DailyLeadsChart = ({ data, from, to }: DailyLeadsChartProps) => {
             >
               <defs>
                 <linearGradient id="fillLeads" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#D4A017" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#D4A017" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#D08C32" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#D08C32" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -122,7 +122,7 @@ const DailyLeadsChart = ({ data, from, to }: DailyLeadsChartProps) => {
               <Area
                 type="monotone"
                 dataKey="leads"
-                stroke="#D4A017"
+                stroke="#D08C32"
                 fill="url(#fillLeads)"
                 strokeWidth={2.5}
               />

@@ -49,11 +49,11 @@ const AppointmentsChart = ({
   const chartConfig = {
     appointments: {
       label: "Procedimentos",
-      color: "#D4A017",
+      color: "#D08C32",
     },
     revenue: {
       label: "Faturamento",
-      color: "#C49A00",
+      color: "#D3AB32",
     },
   } satisfies ChartConfig;
 
@@ -73,12 +73,12 @@ const AppointmentsChart = ({
           >
             <defs>
               <linearGradient id="fillAppointments" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#D4A017" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#D4A017" stopOpacity={0} />
+                <stop offset="0%" stopColor="#D08C32" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#D08C32" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#C49A00" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#C49A00" stopOpacity={0} />
+                <stop offset="0%" stopColor="#D3AB32" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#D3AB32" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -147,7 +147,7 @@ const AppointmentsChart = ({
               yAxisId="left"
               type="monotone"
               dataKey="appointments"
-              stroke="#D4A017"
+              stroke="#D08C32"
               fill="url(#fillAppointments)"
               strokeWidth={2.5}
             />
@@ -155,7 +155,7 @@ const AppointmentsChart = ({
               yAxisId="right"
               type="monotone"
               dataKey="revenue"
-              stroke="#C49A00"
+              stroke="#D3AB32"
               fill="url(#fillRevenue)"
               strokeWidth={2.5}
             />

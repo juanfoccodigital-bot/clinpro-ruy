@@ -11,7 +11,7 @@ export default function AuthForms() {
   return (
     <div className="flex min-h-screen">
       {/* Left side - Brand */}
-      <div className="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 lg:flex">
+      <div className="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden lg:flex" style={{ background: "linear-gradient(135deg, #D08C32, #D3AB32, #261C10)" }}>
         {/* Background blurs */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-white blur-3xl" />
