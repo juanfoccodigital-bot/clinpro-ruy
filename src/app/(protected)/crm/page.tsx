@@ -155,8 +155,8 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
       <PageContainer>
         <PageBanner
           icon={Contact}
-          title="Contatos"
-          description="Gerencie todos os contatos da sua clinica"
+          title="CRM — Funil de Vendas"
+          description="Gerencie leads, acompanhe cadências e converta mais pacientes"
         />
         <PageContent>
           <div className="animate-fade-slide-up delay-1 space-y-6">

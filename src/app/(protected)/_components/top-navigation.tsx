@@ -95,8 +95,8 @@ const allNavGroups: NavGroup[] = [
     icon: Contact,
     matchPaths: ["/crm"],
     items: [
-      { title: "Contatos", url: "/crm", icon: Contact },
-      { title: "Dashboard Comercial", url: "/crm/dashboard", icon: BarChart3 },
+      { title: "Funil de Vendas", url: "/crm", icon: Contact },
+      { title: "Performance", url: "/crm/dashboard", icon: BarChart3 },
     ],
   },
   {
