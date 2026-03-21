@@ -258,7 +258,7 @@ export function TopNavigation() {
                   key={group.title}
                   href={group.url}
                   className={cn(
-                    "rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-300",
+                    "rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-150",
                     isGroupActive(group)
                       ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm shadow-[#D08C32]/20"
                       : "text-muted-foreground hover:bg-[#D08C32]/8 hover:text-foreground",
@@ -271,7 +271,7 @@ export function TopNavigation() {
                   <DropdownMenuTrigger asChild>
                     <button
                       className={cn(
-                        "flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-300 outline-none",
+                        "flex items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium transition-all duration-150 outline-none",
                         isGroupActive(group)
                           ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm shadow-[#D08C32]/20"
                           : "text-muted-foreground hover:bg-[#D08C32]/8 hover:text-foreground",

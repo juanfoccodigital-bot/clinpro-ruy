@@ -143,9 +143,16 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
-  /* Smooth, instant-feeling interactions */
-  a, button {
+  /* Cursor pointer on all clickable elements */
+  a, button, [role="button"], [role="tab"], [role="menuitem"], [role="option"],
+  [data-slot="tabs-trigger"], [data-slot="dropdown-menu-trigger"],
+  input[type="checkbox"], input[type="radio"], select, label[for],
+  .cursor-pointer, [draggable="true"] {
+    cursor: pointer !important;
     -webkit-tap-highlight-color: transparent;
+  }
+  input:not([type="checkbox"]):not([type="radio"]), textarea {
+    cursor: text;
   }
 }
 
@@ -198,13 +205,13 @@
 
 @layer utilities {
   .animate-fade-slide-up {
-    animation: fade-slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fade-slide-up 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .animate-fade-in {
-    animation: fade-in 0.4s ease-out both;
+    animation: fade-in 0.2s ease-out both;
   }
   .animate-scale-in {
-    animation: scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: scale-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   .animate-float {
     animation: float 4s ease-in-out infinite;
@@ -246,7 +253,7 @@
 
   /* Hover glow — Ouro ELO */
   .hover-glow {
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
   }
   .hover-glow:hover {
     box-shadow: 0 0 0 1px rgba(208, 140, 50, 0.1), 0 8px 24px -4px rgba(208, 140, 50, 0.12);
@@ -309,7 +316,7 @@
   }
   .shimmer-hover:hover::after {
     background-position: -200% 0;
-    transition: background-position 0.8s ease;
+    transition: background-position 0.5s ease;
   }
 
   /* Luxury shadow */
