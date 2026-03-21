@@ -1,13 +1,19 @@
 "use client";
 
 import dayjs from "dayjs";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
@@ -67,13 +73,20 @@ function getActivePeriod(from?: string | null, to?: string | null): string {
   return "";
 }
 
+function getActiveLabel(period: string, from?: string | null, to?: string | null): string {
+  const found = periods.find((p) => p.value === period);
+  if (found) return found.label;
+  if (from && to) return `${dayjs(from).format("DD/MM")} — ${dayjs(to).format("DD/MM")}`;
+  return "Período";
+}
+
 export function DatePicker() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentFrom = searchParams.get("from");
   const currentTo = searchParams.get("to");
   const activePeriod = getActivePeriod(currentFrom, currentTo);
-  const [open, setOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const navigate = (from: string, to: string) => {
     router.push(`/dashboard?from=${from}&to=${to}`);
@@ -89,7 +102,7 @@ export function DatePicker() {
       const from = dayjs(range.from).format("YYYY-MM-DD");
       const to = range.to ? dayjs(range.to).format("YYYY-MM-DD") : from;
       navigate(from, to);
-      if (range.to) setOpen(false);
+      if (range.to) setCalendarOpen(false);
     }
   };
 
@@ -100,38 +113,46 @@ export function DatePicker() {
       }
     : undefined;
 
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {periods.map((p) => (
-        <button
-          key={p.value}
-          onClick={() => handlePeriod(p.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-            activePeriod === p.value
-              ? "bg-amber-500 text-white shadow-sm"
-              : "bg-white/60 text-muted-foreground hover:bg-amber-100 hover:text-amber-700 border border-transparent hover:border-amber-200"
-          }`}
-        >
-          {p.label}
-        </button>
-      ))}
+  const activeLabel = getActiveLabel(activePeriod, currentFrom, currentTo);
 
-      <Popover open={open} onOpenChange={setOpen}>
+  return (
+    <div className="flex items-center gap-1.5">
+      {/* Period label */}
+      <span className="text-xs text-white/50 hidden sm:inline">{activeLabel}</span>
+
+      {/* Filter dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex h-8 items-center gap-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 px-3 text-xs font-medium text-white/80 transition-all hover:bg-white/15 hover:text-white outline-none">
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Filtrar</span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          {periods.map((p) => (
+            <DropdownMenuItem
+              key={p.value}
+              onClick={() => handlePeriod(p.value)}
+              className={activePeriod === p.value ? "bg-primary/10 text-primary font-semibold" : ""}
+            >
+              {activePeriod === p.value && (
+                <div className="mr-2 h-1.5 w-1.5 rounded-full bg-primary" />
+              )}
+              {p.label}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setCalendarOpen(true)}>
+            <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+            Personalizado
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Calendar popover (separate from dropdown) */}
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant={activePeriod === "" ? "default" : "outline"}
-            size="sm"
-            className={`h-7 gap-1.5 rounded-full text-xs ${
-              activePeriod === ""
-                ? "bg-amber-500 text-white hover:bg-amber-600"
-                : ""
-            }`}
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            {activePeriod === "" && currentFrom
-              ? `${dayjs(currentFrom).format("DD/MM")} - ${dayjs(currentTo).format("DD/MM")}`
-              : "Personalizado"}
-          </Button>
+          <span />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
