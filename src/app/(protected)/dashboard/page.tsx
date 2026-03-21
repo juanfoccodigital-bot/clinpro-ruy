@@ -112,31 +112,31 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     <WithAuthentication mustHaveClinic>
       <PageContainer>
         {/* Welcome Banner */}
-        <div className="animate-fade-slide-up relative overflow-hidden rounded-2xl border border-[#D08C32]/10 bg-gradient-to-br from-[#D08C32]/8 via-[#D3AB32]/5 to-[#FFF9F3] p-6 shadow-luxury md:p-8">
-          {/* Refined decorative elements */}
-          <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#D08C32]/8 to-[#D3AB32]/6" />
-          <div className="animate-float absolute -right-5 top-12 h-28 w-28 rounded-full bg-gradient-to-br from-[#D3AB32]/8 to-[#D08C32]/4" style={{ animationDelay: "1s" }} />
-          <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-[#D08C32]/4" />
-          <div className="animate-float absolute left-10 bottom-0 h-16 w-16 rounded-full bg-[#D3AB32]/5" style={{ animationDelay: "2s" }} />
-
-          {/* Subtle gold line accent at top */}
-          <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[#D08C32]/20 to-transparent" />
+        <div
+          className="animate-fade-slide-up relative overflow-hidden rounded-2xl p-6 md:p-8"
+          style={{ background: "linear-gradient(135deg, #261C10 0%, #3D2B18 40%, #D08C32 85%, #D3AB32 100%)" }}
+        >
+          {/* Decorative elements */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }} />
+          <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#D08C32]/15 blur-3xl" />
+          <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-[#D3AB32]/10 blur-2xl" style={{ animationDelay: "1s" }} />
+          <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-white/5 blur-xl" />
 
           <div className="relative flex items-center justify-between">
             <div className="space-y-2.5">
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                {greeting}, <span className="text-gradient">{firstName}</span>!
+              <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                {greeting}, <span className="text-[#D3AB32]">{firstName}</span>!
               </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
+              <p className="text-sm text-white/60 md:text-base">
                 Acompanhe seus procedimentos e resultados
               </p>
               <div className="flex items-center gap-2 text-xs md:text-sm">
                 {clinicName && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#D08C32]/8 px-3 py-0.5 text-[#D08C32] font-medium">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 px-3 py-0.5 text-white/90 font-medium">
                     {clinicName}
                   </span>
                 )}
-                <span className="text-muted-foreground capitalize">{todayFormatted}</span>
+                <span className="text-white/40 capitalize">{todayFormatted}</span>
               </div>
             </div>
             <DatePicker />

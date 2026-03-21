@@ -52,22 +52,28 @@ export const PageBanner = ({
   children,
 }: PageBannerProps) => {
   return (
-    <div className="animate-fade-slide-up relative overflow-hidden rounded-2xl border bg-gradient-to-br from-amber-500/10 via-yellow-600/5 to-transparent p-6 md:p-8">
+    <div
+      className="animate-fade-slide-up relative overflow-hidden rounded-2xl p-6 md:p-8"
+      style={{
+        background: "linear-gradient(135deg, #261C10 0%, #3D2B18 40%, #D08C32 85%, #D3AB32 100%)",
+      }}
+    >
       {/* Decorative elements */}
-      <div className="animate-float absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-amber-500/10 to-yellow-600/10" />
-      <div className="animate-float absolute -right-4 top-12 h-20 w-20 rounded-full bg-gradient-to-br from-yellow-600/10 to-amber-500/5" style={{ animationDelay: "1s" }} />
-      <div className="animate-pulse-soft absolute left-1/2 -top-4 h-16 w-16 rounded-full bg-amber-500/5" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }} />
+      <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#D08C32]/15 blur-3xl" />
+      <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-[#D3AB32]/10 blur-2xl" style={{ animationDelay: "1s" }} />
+      <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-white/5 blur-xl" />
 
       <div className="relative flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-700 shadow-lg shadow-amber-500/20">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
             <Icon className="h-6 w-6 text-white" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
               {title}
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base">
+            <p className="text-sm text-white/60 md:text-base">
               {description}
             </p>
           </div>
