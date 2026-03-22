@@ -57,7 +57,8 @@ const AgendaPage = async () => {
         <div className="animate-fade-slide-up delay-1 flex gap-6">
           <div className="flex-1 overflow-hidden">
             <CalendarView
-              appointments={appointments as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              appointments={appointments as unknown as any[]}
               doctors={doctors}
               patients={patients}
               scheduleBlocks={scheduleBlocks}
@@ -65,7 +66,8 @@ const AgendaPage = async () => {
           </div>
           <div className="hidden w-80 shrink-0 lg:block">
             <AgendaSidebar
-              appointments={appointments as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              appointments={appointments as unknown as any[]}
               reminders={reminders}
             />
           </div>
