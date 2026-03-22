@@ -100,7 +100,6 @@ const AddAppointmentForm = ({
     queryFn: () =>
       getAvailableTimes({
         date: dayjs(selectedDate).format("YYYY-MM-DD"),
-        doctorId: "",
       }),
     enabled: !!selectedDate,
   });

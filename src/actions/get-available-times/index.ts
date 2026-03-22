@@ -1,79 +1,56 @@
 "use server";
 
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { appointmentsTable, doctorsTable } from "@/db/schema";
-import { generateTimeSlots } from "@/helpers/time";
+import { appointmentsTable } from "@/db/schema";
 import { protectedWithClinicActionClient } from "@/lib/next-safe-action";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+// Generate time slots from 08:00 to 20:00 every 30 min
+function generateClinicTimeSlots() {
+  const slots: string[] = [];
+  for (let hour = 8; hour <= 20; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      slots.push(
+        `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:00`,
+      );
+    }
+  }
+  return slots;
+}
 
 export const getAvailableTimes = protectedWithClinicActionClient
   .schema(
     z.object({
-      doctorId: z.string(),
-      date: z.string().date(), // YYYY-MM-DD,
+      doctorId: z.string().optional(),
+      date: z.string(), // YYYY-MM-DD
     }),
   )
-  .action(async ({ parsedInput }) => {
-    const doctor = await db.query.doctorsTable.findFirst({
-      where: eq(doctorsTable.id, parsedInput.doctorId),
-    });
-    if (!doctor) {
-      throw new Error("Profissional não encontrado");
-    }
-    const selectedDayOfWeek = dayjs(parsedInput.date).day();
-    const doctorIsAvailable =
-      selectedDayOfWeek >= doctor.availableFromWeekDay &&
-      selectedDayOfWeek <= doctor.availableToWeekDay;
-    if (!doctorIsAvailable) {
+  .action(async ({ parsedInput, ctx }) => {
+    const selectedDate = parsedInput.date;
+    const selectedDayOfWeek = dayjs(selectedDate).day();
+
+    // Block Sundays (day 0)
+    if (selectedDayOfWeek === 0) {
       return [];
     }
-    const appointments = await db.query.appointmentsTable.findMany({
-      where: eq(appointmentsTable.doctorId, parsedInput.doctorId),
-    });
-    const appointmentsOnSelectedDate = appointments
-      .filter((appointment) => {
-        return dayjs(appointment.date).isSame(parsedInput.date, "day");
-      })
-      .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
-    const timeSlots = generateTimeSlots();
 
-    const doctorAvailableFrom = dayjs()
-      .utc()
-      .set("hour", Number(doctor.availableFromTime.split(":")[0]))
-      .set("minute", Number(doctor.availableFromTime.split(":")[1]))
-      .set("second", 0)
-      .local();
-    const doctorAvailableTo = dayjs()
-      .utc()
-      .set("hour", Number(doctor.availableToTime.split(":")[0]))
-      .set("minute", Number(doctor.availableToTime.split(":")[1]))
-      .set("second", 0)
-      .local();
-    const doctorTimeSlots = timeSlots.filter((time) => {
-      const date = dayjs()
-        .utc()
-        .set("hour", Number(time.split(":")[0]))
-        .set("minute", Number(time.split(":")[1]))
-        .set("second", 0);
+    // Get all appointments for this date in this clinic
+    const allAppointments = await db.query.appointmentsTable.findMany({
+      where: eq(appointmentsTable.clinicId, ctx.user.clinic.id),
+    });
 
-      return (
-        date.format("HH:mm:ss") >= doctorAvailableFrom.format("HH:mm:ss") &&
-        date.format("HH:mm:ss") <= doctorAvailableTo.format("HH:mm:ss")
-      );
-    });
-    return doctorTimeSlots.map((time) => {
-      return {
-        value: time,
-        available: !appointmentsOnSelectedDate.includes(time),
-        label: time.substring(0, 5),
-      };
-    });
+    const appointmentsOnDate = allAppointments
+      .filter((a) => dayjs(a.date).isSame(selectedDate, "day"))
+      .map((a) => dayjs(a.date).format("HH:mm:ss"));
+
+    const timeSlots = generateClinicTimeSlots();
+
+    return timeSlots.map((time) => ({
+      value: time,
+      available: !appointmentsOnDate.includes(time),
+      label: time.substring(0, 5),
+    }));
   });
