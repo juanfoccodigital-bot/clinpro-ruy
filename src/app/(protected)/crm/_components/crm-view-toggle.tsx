@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 import ContactDetailDialog from "./contact-detail-dialog";
@@ -73,7 +73,7 @@ const LEAD_SOURCE_CONFIG: Record<string, { label: string; icon: string; bg: stri
 };
 
 export default function CrmViewToggle({
-  contacts,
+  contacts: _contacts,
   stages,
   contactsWithStages,
   checklistData,

@@ -37,7 +37,6 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
   const search = params.search || "";
   const view = params.view || "kanban";
   const perPage = 20;
-  const offset = (page - 1) * perPage;
 
   const session = await auth.api.getSession({
     headers: await headers(),
