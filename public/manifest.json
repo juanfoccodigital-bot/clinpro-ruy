@@ -1,0 +1,24 @@
+{
+  "name": "ClinPro - Elo Clinic",
+  "short_name": "ClinPro",
+  "description": "Sistema de gestão para clínicas de harmonização orofacial",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#D08C32",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logoelo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logoelo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

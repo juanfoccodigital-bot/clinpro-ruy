@@ -397,7 +397,7 @@ export function TopNavigation() {
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
+              <SheetContent side="left" className="w-80 p-0 flex flex-col">
                 <SheetHeader className="border-b border-amber-500/10 p-4">
                   <SheetTitle className="flex items-center gap-2.5">
                     <Image src="/logo-header.png" alt="Elo Clinic" width={40} height={20} />
@@ -406,7 +406,7 @@ export function TopNavigation() {
                     </span>
                   </SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col gap-0.5 overflow-y-auto p-3">
+                <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
                   {navGroups.map((group) => (
                     <div key={group.title}>
                       {group.url && !group.items ? (
@@ -414,17 +414,17 @@ export function TopNavigation() {
                           href={group.url}
                           onClick={() => setMobileOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                            "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors",
                             isGroupActive(group)
-                              ? "bg-primary text-primary-foreground"
+                              ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          <group.icon className="h-4 w-4" />
+                          <group.icon className="h-4.5 w-4.5" />
                           {group.title}
                         </Link>
                       ) : (
-                        <div className="group/nav">
+                        <div>
                           <button
                             onClick={() =>
                               setExpandedGroup(
@@ -432,14 +432,14 @@ export function TopNavigation() {
                               )
                             }
                             className={cn(
-                              "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                              "flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-medium transition-colors",
                               isGroupActive(group)
-                                ? "bg-primary/10 text-primary"
+                                ? "bg-[#D08C32]/10 text-[#D08C32]"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                           >
                             <span className="flex items-center gap-3">
-                              <group.icon className="h-4 w-4" />
+                              <group.icon className="h-4.5 w-4.5" />
                               {group.title}
                             </span>
                             <ChevronRight
@@ -457,20 +457,20 @@ export function TopNavigation() {
                                 : "max-h-0 opacity-0",
                             )}
                           >
-                            <div className="ml-3 border-l border-border/50 pl-3 py-1">
+                            <div className="ml-3 border-l-2 border-[#D08C32]/20 pl-3 py-1">
                               {group.items?.map((item) => (
                                 <Link
                                   key={item.url + item.title}
                                   href={item.url}
                                   onClick={() => setMobileOpen(false)}
                                   className={cn(
-                                    "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                                    "flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm transition-colors",
                                     isPathActive(item.url)
-                                      ? "bg-primary text-primary-foreground font-medium"
+                                      ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white font-medium shadow-sm"
                                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
                                   )}
                                 >
-                                  <item.icon className="h-3.5 w-3.5" />
+                                  <item.icon className="h-4 w-4" />
                                   {item.title}
                                 </Link>
                               ))}
@@ -487,19 +487,19 @@ export function TopNavigation() {
                     href="/whatsapp"
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                      "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors",
                       isPathActive("/whatsapp")
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-gradient-to-r from-[#D08C32] to-[#D3AB32] text-white shadow-sm"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <MessageCircle
                       className={cn(
-                        "h-4 w-4",
+                        "h-4.5 w-4.5",
                         whatsappStatus === "connected"
                           ? "text-emerald-500"
                           : "text-red-500",
-                        isPathActive("/whatsapp") && "text-primary-foreground",
+                        isPathActive("/whatsapp") && "text-white",
                       )}
                     />
                     <span>WhatsApp</span>
@@ -513,6 +513,29 @@ export function TopNavigation() {
                     />
                   </Link>
                 </nav>
+
+                {/* User info at bottom */}
+                <div className="border-t border-[#D08C32]/10 p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 ring-2 ring-[#D08C32]/15">
+                      <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-sm font-semibold">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold leading-tight truncate">{userName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{clinicName}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="mt-3 w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => { setMobileOpen(false); handleSignOut(); }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sair da conta
+                  </Button>
+                </div>
               </SheetContent>
             </Sheet>
           </div>

@@ -347,3 +347,36 @@
     box-shadow: 0 4px 16px rgba(38, 28, 16, 0.08);
   }
 }
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+  /* Bigger tap targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Inline icon buttons can be smaller */
+  button[data-slot="icon-button"],
+  .h-8.w-8, .h-6.w-6 {
+    min-height: auto;
+    min-width: auto;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Smooth scrolling */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* iOS safe area support */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

@@ -218,7 +218,7 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
         }`}
       >
         {/* Drag handle */}
-        <div className="absolute left-1 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover:opacity-40 transition-opacity">
+        <div className="absolute left-1 top-1/2 -translate-y-1/2 cursor-grab opacity-40 sm:opacity-0 sm:group-hover:opacity-40 transition-opacity">
           <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
         </div>
 
@@ -246,7 +246,7 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-6 sm:w-6 p-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
@@ -255,8 +255,10 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
                 <User className="mr-2 h-3.5 w-3.5" /> Ver detalhes
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Mover para</div>
               {sortedStages.filter(s => s.id !== contact.stage?.stageId).map((stage) => (
-                <DropdownMenuItem key={stage.id} onClick={() => handleMoveToStage(contact.id, stage.id)}>
+                <DropdownMenuItem key={stage.id} onClick={() => handleMoveToStage(contact.id, stage.id)} className="py-2.5">
+                  <ArrowRight className="mr-1.5 h-3 w-3 text-muted-foreground" />
                   <div className="mr-2 h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
                   {stage.name}
                 </DropdownMenuItem>
@@ -349,7 +351,7 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
     return (
       <div
         key={stageId}
-        className="flex h-full w-[300px] shrink-0 flex-col"
+        className="flex h-full w-[280px] sm:w-[300px] shrink-0 flex-col snap-start"
         onDragOver={(e) => onDragOver(e, stageId)}
         onDragLeave={onDragLeave}
         onDrop={(e) => onDrop(e, stageId)}
@@ -416,7 +418,7 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
       </div>
 
       {/* Kanban */}
-      <div className="flex gap-3 overflow-x-auto pb-4" style={{ minHeight: "600px" }}>
+      <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none" style={{ minHeight: "600px", WebkitOverflowScrolling: "touch" }}>
         {contactsByStage["unassigned"]?.length > 0 &&
           renderColumn("unassigned", "Sem Etapa", "#94a3b8", contactsByStage["unassigned"])}
         {sortedStages.map((stage) =>

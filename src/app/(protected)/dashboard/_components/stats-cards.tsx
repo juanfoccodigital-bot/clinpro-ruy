@@ -88,13 +88,13 @@ const StatsCards = ({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
           <div
             key={stat.title}
-            className="animate-fade-slide-up group relative overflow-hidden rounded-2xl border border-[#D08C32]/5 bg-card p-6 shadow-luxury transition-all duration-300 hover-glow shimmer-hover"
+            className="animate-fade-slide-up group relative overflow-hidden rounded-2xl border border-[#D08C32]/5 bg-card p-3 sm:p-6 shadow-luxury transition-all duration-300 hover-glow shimmer-hover"
             style={{ animationDelay: `${index * 75}ms` }}
           >
             {/* Background gradient */}
@@ -105,7 +105,7 @@ const StatsCards = ({
                 <p className="text-muted-foreground text-sm font-medium">
                   {stat.title}
                 </p>
-                <p className="text-3xl font-extrabold tracking-tight text-[#261C10] dark:text-white">{stat.value}</p>
+                <p className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tight text-[#261C10] dark:text-white truncate">{stat.value}</p>
                 {/* Trend indicator */}
                 {stat.trend && (
                 <div className="flex items-center gap-1">
@@ -122,9 +122,9 @@ const StatsCards = ({
                 )}
               </div>
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl`}
+                className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl`}
               >
-                <Icon className="h-5 w-5 text-white" />
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
               </div>
             </div>
           </div>

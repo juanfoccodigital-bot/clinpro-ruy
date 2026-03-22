@@ -1,12 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 
 export const PageContainer = ({ children }: { children: React.ReactNode }) => {
-  return <div className="w-full space-y-6 p-6">{children}</div>;
+  return <div className="w-full space-y-4 p-4 md:space-y-6 md:p-6">{children}</div>;
 };
 
 export const PageHeader = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex w-full items-center justify-between">{children}</div>
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">{children}</div>
   );
 };
 
@@ -31,7 +31,7 @@ export const PageDescription = ({
 };
 
 export const PageActions = ({ children }: { children: React.ReactNode }) => {
-  return <div className="flex items-center gap-2">{children}</div>;
+  return <div className="flex flex-wrap items-center gap-2">{children}</div>;
 };
 
 export const PageContent = ({ children }: { children: React.ReactNode }) => {
@@ -64,16 +64,16 @@ export const PageBanner = ({
       <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-white/8 blur-2xl" style={{ animationDelay: "1s" }} />
       <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-[#261C10]/10 blur-xl" />
 
-      <div className="relative flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
-            <Icon className="h-6 w-6 text-white" />
+      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
+            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <div className="space-y-0.5 sm:space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
               {title}
             </h1>
-            <p className="text-sm text-white/80 md:text-base">
+            <p className="text-xs text-white/80 sm:text-sm md:text-base">
               {description}
             </p>
           </div>

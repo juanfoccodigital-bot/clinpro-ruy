@@ -124,15 +124,15 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
           <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-white/8 blur-2xl" style={{ animationDelay: "1s" }} />
           <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-[#261C10]/10 blur-xl" />
 
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+              <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl md:text-3xl">
                 {greeting}, {firstName}!
               </h1>
               <p className="text-sm text-white/80 md:text-base">
                 Acompanhe seus procedimentos e resultados
               </p>
-              <div className="flex items-center gap-2 text-xs md:text-sm">
+              <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm">
                 {clinicName && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 px-3 py-0.5 text-white/90 font-medium">
                     {clinicName}
@@ -141,7 +141,9 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
                 <span className="text-white/70 capitalize">{todayFormatted}</span>
               </div>
             </div>
-            <DatePicker />
+            <div className="shrink-0">
+              <DatePicker />
+            </div>
           </div>
         </div>
 
