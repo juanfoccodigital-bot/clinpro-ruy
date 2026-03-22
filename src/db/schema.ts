@@ -285,8 +285,7 @@ export const appointmentsTable = pgTable("appointments", {
     .notNull()
     .references(() => patientsTable.id, { onDelete: "cascade" }),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   procedureId: uuid("procedure_id").references(() => proceduresTable.id),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -384,8 +383,7 @@ export const medicalRecordsTable = pgTable("medical_records", {
     .notNull()
     .references(() => patientsTable.id, { onDelete: "cascade" }),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   appointmentId: uuid("appointment_id").references(
     () => appointmentsTable.id,
     { onDelete: "set null" },
@@ -536,8 +534,7 @@ export const documentsTable = pgTable("documents", {
     .notNull()
     .references(() => patientsTable.id, { onDelete: "cascade" }),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   appointmentId: uuid("appointment_id").references(
     () => appointmentsTable.id,
     { onDelete: "set null" },
@@ -772,8 +769,7 @@ export const doctorCommissionsTable = pgTable("doctor_commissions", {
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   commissionPercentage: integer("commission_percentage").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
@@ -868,8 +864,7 @@ export const doctorScheduleBlocksTable = pgTable("doctor_schedule_blocks", {
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
@@ -1826,8 +1821,7 @@ export const teleconsultationsTable = pgTable("teleconsultations", {
     { onDelete: "set null" },
   ),
   doctorId: uuid("doctor_id")
-    .notNull()
-    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+    .references(() => doctorsTable.id, { onDelete: "set null" }),
   patientId: uuid("patient_id")
     .notNull()
     .references(() => patientsTable.id, { onDelete: "cascade" }),

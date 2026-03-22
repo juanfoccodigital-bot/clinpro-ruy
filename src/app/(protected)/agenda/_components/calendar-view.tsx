@@ -19,7 +19,7 @@ dayjs.locale("pt-br");
 
 type Appointment = typeof appointmentsTable.$inferSelect & {
   patient: typeof patientsTable.$inferSelect;
-  doctor: typeof doctorsTable.$inferSelect;
+  doctor?: typeof doctorsTable.$inferSelect | null;
 };
 
 type ScheduleBlock = typeof doctorScheduleBlocksTable.$inferSelect;
@@ -79,13 +79,13 @@ const CalendarView = ({
 
   const filteredAppointments = useMemo(() => {
     if (selectedDoctorIds.length === 0) return appointments;
-    return appointments.filter((a) => selectedDoctorIds.includes(a.doctorId));
+    return appointments.filter((a) => a.doctorId && selectedDoctorIds.includes(a.doctorId));
   }, [appointments, selectedDoctorIds]);
 
   const filteredBlocks = useMemo(() => {
     if (selectedDoctorIds.length === 0) return scheduleBlocks;
     return scheduleBlocks.filter((b) =>
-      selectedDoctorIds.includes(b.doctorId),
+      b.doctorId && selectedDoctorIds.includes(b.doctorId),
     );
   }, [scheduleBlocks, selectedDoctorIds]);
 
@@ -219,7 +219,7 @@ const CalendarView = ({
                         className={`mb-1 rounded border px-1.5 py-1 text-[11px] leading-tight ${
                           apt.status === "cancelled"
                             ? "border-red-200 bg-red-50 text-red-700 line-through"
-                            : doctorColorMap.get(apt.doctorId) ??
+                            : (apt.doctorId ? doctorColorMap.get(apt.doctorId) : undefined) ??
                               "bg-blue-100 border-blue-300 text-blue-800"
                         }`}
                       >
