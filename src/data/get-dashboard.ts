@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { and, asc, between, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import { and, asc, between, count, eq, gte, lte, sql, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
