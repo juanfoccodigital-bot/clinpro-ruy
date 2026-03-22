@@ -37,7 +37,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { ContactWithStage, PipelineStage } from "./contact-detail-dialog";
 import ContactDetailDialog from "./contact-detail-dialog";
-import { ContactRow } from "./contacts-table-columns";
 import KanbanBoard from "./kanban-board";
 
 interface ChecklistItem {
@@ -49,7 +48,6 @@ interface ChecklistItem {
 }
 
 interface CrmViewToggleProps {
-  contacts: ContactRow[];
   stages: PipelineStage[];
   contactsWithStages: ContactWithStage[];
   checklistData?: {
@@ -73,7 +71,6 @@ const LEAD_SOURCE_CONFIG: Record<string, { label: string; icon: string; bg: stri
 };
 
 export default function CrmViewToggle({
-  contacts: _contacts,
   stages,
   contactsWithStages,
   checklistData,

@@ -157,7 +157,6 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
               recentContacts={recentCount}
             />
             <CrmViewToggle
-              contacts={contacts}
               stages={stages}
               contactsWithStages={contactsWithStages}
               checklistData={checklistData}
