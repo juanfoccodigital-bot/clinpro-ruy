@@ -36,7 +36,6 @@ export const getPatientDetail = async ({
           eq(medicalRecordsTable.clinicId, clinicId),
         ),
         with: {
-          doctor: true,
         },
         orderBy: [desc(medicalRecordsTable.createdAt)],
         limit: 50,
@@ -67,7 +66,6 @@ export const getPatientDetail = async ({
           gte(appointmentsTable.date, new Date()),
         ),
         with: {
-          doctor: true,
         },
         orderBy: [desc(appointmentsTable.date)],
       }),

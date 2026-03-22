@@ -12,7 +12,6 @@ export const getTransactions = async ({ clinicId }: GetTransactionsParams) => {
     where: eq(financialTransactionsTable.clinicId, clinicId),
     with: {
       patient: true,
-      doctor: true,
     },
     orderBy: [desc(financialTransactionsTable.createdAt)],
     limit: 200,

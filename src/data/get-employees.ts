@@ -12,7 +12,6 @@ export const getEmployees = async ({ clinicId }: GetEmployeesParams) => {
     where: eq(employeesTable.clinicId, clinicId),
     with: {
       permissions: true,
-      doctor: true,
     },
     orderBy: [employeesTable.name],
   });

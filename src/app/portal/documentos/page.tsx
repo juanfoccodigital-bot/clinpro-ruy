@@ -89,7 +89,7 @@ export default async function PortalDocumentosPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>{doc.title}</TableCell>
-                    <TableCell>{doc.doctor.name}</TableCell>
+                    <TableCell>{"—"}</TableCell>
                     <TableCell>
                       {dayjs(doc.createdAt).format("DD/MM/YYYY")}
                     </TableCell>

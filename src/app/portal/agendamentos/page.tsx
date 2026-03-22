@@ -90,8 +90,8 @@ export default async function PortalAgendamentosPage() {
                     <TableCell>
                       {dayjs(apt.date).format("HH:mm")}
                     </TableCell>
-                    <TableCell>{apt.doctor.name}</TableCell>
-                    <TableCell>{apt.doctor.specialty}</TableCell>
+                    <TableCell>{"—"}</TableCell>
+                    <TableCell>{"—"}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"

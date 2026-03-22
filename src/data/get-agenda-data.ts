@@ -26,7 +26,6 @@ export const getAgendaData = async ({
     ),
     with: {
       patient: true,
-      doctor: true,
     },
   });
 
@@ -43,7 +42,6 @@ export const getScheduleBlocks = async ({
   const blocks = await db.query.doctorScheduleBlocksTable.findMany({
     where: eq(doctorScheduleBlocksTable.clinicId, clinicId),
     with: {
-      doctor: true,
     },
   });
 
@@ -59,7 +57,6 @@ export const getWaitingList = async ({ clinicId }: GetWaitingListParams) => {
     where: eq(waitingListTable.clinicId, clinicId),
     with: {
       patient: true,
-      doctor: true,
     },
     orderBy: [desc(waitingListTable.createdAt)],
   });

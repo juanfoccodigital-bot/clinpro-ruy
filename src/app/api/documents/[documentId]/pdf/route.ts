@@ -67,8 +67,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const templateParams = {
     clinic: { name: clinic.name },
     doctor: {
-      name: document.doctor.name,
-      specialty: document.doctor.specialty,
+      name: document?.doctor?.name || "",
+      specialty: document?.doctor?.specialty || "",
     },
     patient: { name: document.patient.name },
     content: document.content,

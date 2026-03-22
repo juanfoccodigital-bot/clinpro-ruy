@@ -13,7 +13,6 @@ export const getDocuments = async ({ clinicId }: GetDocumentsParams) => {
       where: eq(documentsTable.clinicId, clinicId),
       with: {
         patient: true,
-        doctor: true,
       },
       orderBy: [desc(documentsTable.createdAt)],
       limit: 100,

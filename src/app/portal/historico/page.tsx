@@ -91,7 +91,7 @@ export default async function PortalHistoricoPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>{record.title}</TableCell>
-                    <TableCell>{record.doctor.name}</TableCell>
+                    <TableCell>{"—"}</TableCell>
                     <TableCell>
                       {record.cid10Code ? (
                         <span title={record.cid10Description || ""}>

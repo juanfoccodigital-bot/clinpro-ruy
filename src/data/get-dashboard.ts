@@ -7,7 +7,6 @@ import {
   appointmentsTable,
   crmContactStagesTable,
   crmPipelineStagesTable,
-  doctorsTable,
   financialTransactionsTable,
   patientsTable,
   whatsappMessagesTable,
@@ -106,43 +105,10 @@ export const getDashboard = async ({ from, to, session }: Params) => {
           ),
         ),
       ),
-    db
-      .select({
-        id: doctorsTable.id,
-        name: doctorsTable.name,
-        avatarImageUrl: doctorsTable.avatarImageUrl,
-        specialty: doctorsTable.specialty,
-        appointments: count(appointmentsTable.id),
-      })
-      .from(doctorsTable)
-      .leftJoin(
-        appointmentsTable,
-        and(
-          eq(appointmentsTable.doctorId, doctorsTable.id),
-          gte(appointmentsTable.date, new Date(from)),
-          lte(appointmentsTable.date, new Date(to)),
-        ),
-      )
-      .where(eq(doctorsTable.clinicId, clinicId))
-      .groupBy(doctorsTable.id)
-      .orderBy(desc(count(appointmentsTable.id)))
-      .limit(10),
-    db
-      .select({
-        specialty: doctorsTable.specialty,
-        appointments: count(appointmentsTable.id),
-      })
-      .from(appointmentsTable)
-      .innerJoin(doctorsTable, eq(appointmentsTable.doctorId, doctorsTable.id))
-      .where(
-        and(
-          eq(appointmentsTable.clinicId, clinicId),
-          gte(appointmentsTable.date, new Date(from)),
-          lte(appointmentsTable.date, new Date(to)),
-        ),
-      )
-      .groupBy(doctorsTable.specialty)
-      .orderBy(desc(count(appointmentsTable.id))),
+    // topDoctors - removed
+    Promise.resolve([]),
+    // topSpecialties - removed
+    Promise.resolve([]),
     db
       .select({
         date: sql<string>`DATE(${appointmentsTable.date})`.as("date"),
@@ -180,7 +146,7 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     // Recent appointments (for activity feed)
     db.query.appointmentsTable.findMany({
       where: eq(appointmentsTable.clinicId, clinicId),
-      with: { patient: true, doctor: true },
+      with: { patient: true },
       orderBy: (table, { desc: d }) => [d(table.createdAt)],
       limit: 5,
     }),
@@ -205,7 +171,7 @@ export const getDashboard = async ({ from, to, session }: Params) => {
         eq(appointmentsTable.clinicId, clinicId),
         gte(appointmentsTable.date, now),
       ),
-      with: { patient: true, doctor: true },
+      with: { patient: true },
       orderBy: (table) => [asc(table.date)],
       limit: 10,
     }),
@@ -236,7 +202,7 @@ export const getDashboard = async ({ from, to, session }: Params) => {
   const recentActivities = [
     ...recentAppointments.map((a) => ({
       type: "appointment" as const,
-      description: `Agendamento: ${a.patient.name} com ${a.doctor.name}`,
+      description: `Agendamento: ${a.patient.name}`,
       timestamp: a.createdAt,
     })),
     ...recentPatients.map((p) => ({

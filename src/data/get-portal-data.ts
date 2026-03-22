@@ -23,7 +23,6 @@ export const getPatientAppointments = async ({
       eq(appointmentsTable.clinicId, clinicId),
     ),
     with: {
-      doctor: true,
     },
     orderBy: [desc(appointmentsTable.date)],
   });
@@ -41,7 +40,6 @@ export const getPatientDocuments = async ({
       eq(documentsTable.clinicId, clinicId),
     ),
     with: {
-      doctor: true,
     },
     orderBy: [desc(documentsTable.createdAt)],
   });
@@ -60,7 +58,6 @@ export const getPatientMedicalRecords = async ({
       eq(medicalRecordsTable.isPrivate, false),
     ),
     with: {
-      doctor: true,
     },
     orderBy: [desc(medicalRecordsTable.createdAt)],
   });

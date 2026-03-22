@@ -17,7 +17,13 @@
       "Bash(npx --yes node -e \":*)",
       "Bash(grep -r META_ADS_ACCESS_TOKEN /Users/usuario/Downloads/clinpro-main/src --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"INSERT INTO\\\\|SELECT\\\\|UPDATE\\\\|DELETE\" /Users/usuario/Downloads/clinpro-main/src --include=*.ts --include=*.tsx)",
-      "Bash(grep -E \"\\\\`|$\\\\{|concat|plus\")"
+      "Bash(grep -E \"\\\\`|$\\\\{|concat|plus\")",
+      "Bash(for f:*)",
+      "Bash(do)",
+      "Bash(sed -i '' '/doctor: true,/d' \"$f\")"
+    ],
+    "additionalDirectories": [
+      "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\""
     ]
   }
 }

@@ -26,7 +26,7 @@ interface Appointment {
   id: string;
   date: Date;
   patient: { name: string };
-  doctor: { name: string };
+  doctor?: { name: string } | null;
   status: string;
   appointmentPriceInCents: number;
 }
@@ -106,7 +106,7 @@ const UpcomingAppointments = ({ appointments }: UpcomingAppointmentsProps) => {
                         {dayjs(appointment.date).format("DD/MM HH:mm")}
                       </span>
                       <span className="text-[#D08C32]/30">|</span>
-                      <span className="truncate">{appointment.doctor.name}</span>
+                      <span className="truncate">{appointment?.doctor?.name || "—"}</span>
                       <span className="ml-auto font-semibold tabular-nums text-[#D08C32]">
                         {formatCurrencyInCents(appointment.appointmentPriceInCents)}
                       </span>
