@@ -2,6 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import { Badge } from "@/components/ui/badge";
 import { patientsTable } from "@/db/schema";
 
 import PatientsTableActions from "./table-actions";
@@ -13,11 +14,21 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     id: "name",
     accessorKey: "name",
     header: "Nome",
+    cell: (params) => {
+      const patient = params.row.original;
+      return <span className="font-medium">{patient.name}</span>;
+    },
   },
   {
     id: "email",
     accessorKey: "email",
     header: "Email",
+    cell: (params) => {
+      const patient = params.row.original;
+      return (
+        <span className="text-muted-foreground">{patient.email}</span>
+      );
+    },
   },
   {
     id: "phoneNumber",
@@ -26,12 +37,12 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     cell: (params) => {
       const patient = params.row.original;
       const phoneNumber = patient.phoneNumber;
-      if (!phoneNumber) return "";
+      if (!phoneNumber) return <span className="text-muted-foreground/50">—</span>;
       const formatted = phoneNumber.replace(
         /(\d{2})(\d{5})(\d{4})/,
         "($1) $2-$3",
       );
-      return formatted;
+      return <span className="font-mono text-sm">{formatted}</span>;
     },
   },
   {
@@ -40,7 +51,11 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     header: "Sexo",
     cell: (params) => {
       const patient = params.row.original;
-      return patient.sex === "male" ? "Masculino" : "Feminino";
+      return (
+        <Badge variant="outline" className="text-xs">
+          {patient.sex === "male" ? "Masculino" : "Feminino"}
+        </Badge>
+      );
     },
   },
   {

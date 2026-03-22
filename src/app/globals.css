@@ -338,4 +338,12 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(208, 140, 50, 0.2), transparent);
   }
+
+  /* Smooth card transitions */
+  .card-smooth {
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+  .card-smooth:hover {
+    box-shadow: 0 4px 16px rgba(38, 28, 16, 0.08);
+  }
 }

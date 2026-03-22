@@ -178,13 +178,13 @@ const FinanceiroPage = async () => {
         >
           <div className="flex items-center gap-2">
             <Link href="/financeiro/transacoes">
-              <Button variant="outline">
+              <Button className="bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm font-semibold">
                 Transacoes
                 <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <Link href="/financeiro/maquininhas">
-              <Button variant="outline">
+              <Button className="bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm font-semibold">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Maquininhas
               </Button>

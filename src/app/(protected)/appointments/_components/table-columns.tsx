@@ -19,14 +19,14 @@ const appointmentStatusLabels: Record<string, string> = {
   no_show: "Não Compareceu",
 };
 
-const appointmentStatusVariants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  scheduled: "outline",
-  confirmed: "default",
-  arrived: "secondary",
-  in_service: "default",
-  completed: "secondary",
-  cancelled: "destructive",
-  no_show: "destructive",
+const appointmentStatusStyles: Record<string, string> = {
+  scheduled: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  confirmed: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  arrived: "bg-violet-500/10 text-violet-600 border-violet-500/20",
+  in_service: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  completed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
+  cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
+  no_show: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 
 type AppointmentWithRelations = typeof appointmentsTable.$inferSelect & {
@@ -44,6 +44,12 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
     id: "patient",
     accessorKey: "patient.name",
     header: "Paciente",
+    cell: (params) => {
+      const appointment = params.row.original;
+      return (
+        <span className="font-medium">{appointment.patient.name}</span>
+      );
+    },
   },
   {
     id: "date",
@@ -51,9 +57,18 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
     header: "Data e Hora",
     cell: (params) => {
       const appointment = params.row.original;
-      return format(new Date(appointment.date), "dd/MM/yyyy 'às' HH:mm", {
+      const dateStr = format(new Date(appointment.date), "dd MMM yyyy", {
         locale: ptBR,
       });
+      const timeStr = format(new Date(appointment.date), "HH:mm", {
+        locale: ptBR,
+      });
+      return (
+        <div>
+          <span className="font-medium">{dateStr}</span>
+          <span className="text-muted-foreground ml-1.5 text-xs">{timeStr}</span>
+        </div>
+      );
     },
   },
   {
@@ -64,7 +79,10 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
       const appointment = params.row.original;
       const status = appointment.status ?? "scheduled";
       return (
-        <Badge variant={appointmentStatusVariants[status] ?? "outline"}>
+        <Badge
+          variant="outline"
+          className={appointmentStatusStyles[status] ?? ""}
+        >
           {appointmentStatusLabels[status] ?? status}
         </Badge>
       );
@@ -77,10 +95,11 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
     cell: (params) => {
       const appointment = params.row.original;
       const price = appointment.appointmentPriceInCents / 100;
-      return new Intl.NumberFormat("pt-BR", {
+      const formatted = new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
       }).format(price);
+      return <span className="font-semibold">{formatted}</span>;
     },
   },
   {

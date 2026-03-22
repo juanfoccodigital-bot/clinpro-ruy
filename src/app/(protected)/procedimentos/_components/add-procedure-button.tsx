@@ -18,7 +18,7 @@ const AddProcedureButton = ({ stockItems }: AddProcedureButtonProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="bg-white text-[#261C10] hover:bg-white/90 shadow-sm font-semibold">
           <Plus />
           Novo procedimento
         </Button>
