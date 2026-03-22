@@ -36,7 +36,6 @@ export const addAppointment = protectedWithClinicActionClient
 
     await db.insert(appointmentsTable).values({
       patientId: parsedInput.patientId,
-      doctorId: parsedInput.doctorId ?? "",
       appointmentPriceInCents: parsedInput.appointmentPriceInCents,
       clinicId: ctx.user.clinic.id,
       date: appointmentDateTime,

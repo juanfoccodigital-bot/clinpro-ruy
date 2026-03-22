@@ -54,7 +54,7 @@ const formSchema = z.object({
     message: "Paciente é obrigatório.",
   }),
   procedureId: z.string().optional(),
-  appointmentPrice: z.number().min(1, {
+  appointmentPrice: z.number().min(0, {
     message: "Valor do procedimento é obrigatório.",
   }),
   date: z.date({
