@@ -10,11 +10,11 @@ export default function AuthForms() {
       {/* Left side - Brand */}
       <div
         className="relative hidden w-[55%] flex-col items-center justify-center overflow-hidden lg:flex"
-        style={{ background: "#1A1310" }}
+        style={{ background: "linear-gradient(135deg, #D08C32 0%, #D3AB32 50%, #C47A28 100%)" }}
       >
-        {/* Subtle gold gradient orbs */}
-        <div className="absolute top-0 right-0 h-[600px] w-[600px] rounded-full bg-[#D08C32]/8 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-[#D3AB32]/5 blur-[100px]" />
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-white/10 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-[#261C10]/10 blur-[100px]" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center px-16 text-center">
@@ -40,7 +40,7 @@ export default function AuthForms() {
         </div>
 
         {/* Bottom */}
-        <div className="absolute bottom-8 text-xs text-white/20">
+        <div className="absolute bottom-8 text-xs text-white/50">
           Powered by Fyre Soluções
         </div>
       </div>
