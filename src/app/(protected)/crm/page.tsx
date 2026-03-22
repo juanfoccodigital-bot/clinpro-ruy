@@ -72,20 +72,11 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
     .from(patientsTable)
     .where(whereClause);
 
-  // For kanban: load all (with search filter)
-  // For table: paginate
-  const patients =
-    view === "kanban"
-      ? await db.query.patientsTable.findMany({
-          where: whereClause,
-          orderBy: (table, { desc }) => [desc(table.createdAt)],
-        })
-      : await db.query.patientsTable.findMany({
-          where: whereClause,
-          limit: perPage,
-          offset,
-          orderBy: (table, { desc }) => [desc(table.createdAt)],
-        });
+  // Kanban and lista need all contacts (for stages/drag), tabela paginates
+  const patients = await db.query.patientsTable.findMany({
+    where: whereClause,
+    orderBy: (table, { desc }) => [desc(table.createdAt)],
+  });
 
   const totalPages = Math.ceil(filteredCount / perPage);
 
