@@ -27,7 +27,8 @@
       "Bash(grep -l \"add.*patient\\\\|create.*patient\\\\|delete.*patient\" /Users/usuario/Downloads/clinpro-main/src/actions/*.ts)"
     ],
     "additionalDirectories": [
-      "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\""
+      "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\"",
+      "/Users/usuario/Downloads/clinpro-main"
     ]
   }
 }
