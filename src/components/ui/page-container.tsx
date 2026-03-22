@@ -55,14 +55,14 @@ export const PageBanner = ({
     <div
       className="animate-fade-slide-up relative overflow-hidden rounded-2xl p-6 md:p-8"
       style={{
-        background: "linear-gradient(135deg, #261C10 0%, #3D2B18 40%, #D08C32 85%, #D3AB32 100%)",
+        background: "linear-gradient(135deg, #D08C32 0%, #D3AB32 50%, #C47A28 100%)",
       }}
     >
       {/* Decorative elements */}
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }} />
-      <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#D08C32]/15 blur-3xl" />
-      <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-[#D3AB32]/10 blur-2xl" style={{ animationDelay: "1s" }} />
-      <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-white/5 blur-xl" />
+      <div className="animate-float absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+      <div className="animate-float absolute right-1/4 bottom-0 h-28 w-28 rounded-full bg-white/8 blur-2xl" style={{ animationDelay: "1s" }} />
+      <div className="animate-pulse-soft absolute left-1/3 -top-6 h-20 w-20 rounded-full bg-[#261C10]/10 blur-xl" />
 
       <div className="relative flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
