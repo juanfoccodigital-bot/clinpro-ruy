@@ -1,5 +1,7 @@
 import {
+  AlertTriangleIcon,
   CalendarIcon,
+  ClockIcon,
   DollarSignIcon,
   MessageCircle,
   TrendingDown,
@@ -14,6 +16,8 @@ interface StatsCardsProps {
   totalAppointments: number;
   totalPatients: number;
   activeConversations: number;
+  pendingReceivables?: number | null;
+  overdueCount?: number;
 }
 
 const StatsCards = ({
@@ -21,6 +25,8 @@ const StatsCards = ({
   totalAppointments,
   totalPatients,
   activeConversations,
+  pendingReceivables,
+  overdueCount,
 }: StatsCardsProps) => {
   const stats = [
     {
@@ -31,6 +37,26 @@ const StatsCards = ({
       glow: "shadow-[#D08C32]/25",
       bg: "from-[#D08C32]/6 via-[#D3AB32]/3 to-transparent",
       trend: { value: 12.5, up: true },
+    },
+    {
+      title: "A Receber",
+      value: pendingReceivables
+        ? formatCurrencyInCents(pendingReceivables)
+        : "R$ 0,00",
+      icon: ClockIcon,
+      gradient: "from-[#E6A817] to-[#D3AB32]",
+      glow: "shadow-[#E6A817]/25",
+      bg: "from-[#E6A817]/6 via-[#D3AB32]/3 to-transparent",
+      trend: null,
+    },
+    {
+      title: "Inadimplentes",
+      value: (overdueCount ?? 0).toString(),
+      icon: AlertTriangleIcon,
+      gradient: "from-[#DC2626] to-[#B91C1C]",
+      glow: "shadow-[#DC2626]/25",
+      bg: "from-[#DC2626]/6 via-[#B91C1C]/3 to-transparent",
+      trend: null,
     },
     {
       title: "Procedimentos",
@@ -62,7 +88,7 @@ const StatsCards = ({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
@@ -81,6 +107,7 @@ const StatsCards = ({
                 </p>
                 <p className="text-3xl font-extrabold tracking-tight text-[#261C10] dark:text-white">{stat.value}</p>
                 {/* Trend indicator */}
+                {stat.trend && (
                 <div className="flex items-center gap-1">
                   {stat.trend.up ? (
                     <TrendingUp className="h-3 w-3 text-emerald-600" />
@@ -92,6 +119,7 @@ const StatsCards = ({
                   </span>
                   <span className="text-muted-foreground text-xs">vs. anterior</span>
                 </div>
+                )}
               </div>
               <div
                 className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.glow} transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl`}

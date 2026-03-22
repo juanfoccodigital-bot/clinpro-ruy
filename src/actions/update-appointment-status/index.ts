@@ -40,8 +40,15 @@ export const updateAppointmentStatus = protectedWithClinicActionClient
             ctx.user.clinic.id,
           );
         } catch (error) {
-          console.error("Erro ao deduzir estoque:", error);
+          console.error(
+            `Erro ao deduzir estoque para procedimento ${appointment.procedureId} (agendamento ${appointment.id}):`,
+            error instanceof Error ? error.message : error,
+          );
         }
+      } else {
+        console.warn(
+          `Agendamento ${appointment.id} concluído sem procedimento vinculado. Estoque não deduzido.`,
+        );
       }
 
       // Create income financial transaction

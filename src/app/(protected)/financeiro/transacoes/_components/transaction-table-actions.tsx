@@ -81,7 +81,10 @@ const TransactionTableActions = ({
 
   const handleMarkPaidClick = () => {
     if (!transaction) return;
-    markPaidAction.execute({ id: transaction.id });
+    markPaidAction.execute({
+      id: transaction.id,
+      paymentDate: new Date().toISOString(),
+    });
   };
 
   return (
@@ -96,10 +99,10 @@ const TransactionTableActions = ({
           <DropdownMenuContent>
             <DropdownMenuLabel>{transaction.description}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {transaction.status !== "paid" && (
+            {(transaction.status === "pending" || transaction.status === "overdue") && (
               <DropdownMenuItem onClick={handleMarkPaidClick}>
-                <CheckCircleIcon />
-                Marcar como Pago
+                <CheckCircleIcon className="text-green-600" />
+                Confirmar Pagamento
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => setUpsertDialogIsOpen(true)}>

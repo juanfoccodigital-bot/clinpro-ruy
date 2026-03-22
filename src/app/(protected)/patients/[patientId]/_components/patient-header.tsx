@@ -1,7 +1,7 @@
 "use client";
 
 import { differenceInYears } from "date-fns";
-import { MailIcon, PhoneIcon } from "lucide-react";
+import { MailIcon, MegaphoneIcon, PhoneIcon, TagIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,23 @@ const PatientHeader = ({ patient, profile }: PatientHeaderProps) => {
             )}
             {age !== null && (
               <Badge variant="outline">{age} anos</Badge>
+            )}
+            {patient.leadSource && (
+              <Badge variant="secondary" className="gap-1">
+                <MegaphoneIcon className="h-3 w-3" />
+                {patient.leadSource}
+              </Badge>
+            )}
+            {patient.leadSourceDetail && (
+              <Badge variant="outline" className="gap-1">
+                <TagIcon className="h-3 w-3" />
+                {patient.leadSourceDetail}
+              </Badge>
+            )}
+            {patient.leadAdName && (
+              <Badge variant="outline" className="gap-1">
+                {patient.leadAdName}
+              </Badge>
             )}
           </div>
           <div className="text-muted-foreground flex items-center gap-4 text-sm">

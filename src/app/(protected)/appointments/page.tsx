@@ -30,6 +30,7 @@ const AppointmentsPage = async () => {
       where: eq(appointmentsTable.clinicId, clinicId),
       with: {
         patient: true,
+        procedure: true,
       },
     }),
     db.query.proceduresTable.findMany({

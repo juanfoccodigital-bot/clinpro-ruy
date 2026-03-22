@@ -26,6 +26,8 @@ export const getAgendaData = async ({
     ),
     with: {
       patient: true,
+      doctor: true,
+      procedure: true,
     },
   });
 

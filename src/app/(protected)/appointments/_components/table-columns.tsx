@@ -37,6 +37,10 @@ type AppointmentWithRelations = typeof appointmentsTable.$inferSelect & {
     phoneNumber: string;
     sex: "male" | "female";
   };
+  procedure?: {
+    id: string;
+    name: string;
+  } | null;
 };
 
 export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
@@ -89,6 +93,19 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
     },
   },
   {
+    id: "procedure",
+    accessorKey: "procedure.name",
+    header: "Procedimento",
+    cell: (params) => {
+      const appointment = params.row.original;
+      return (
+        <span className="text-sm">
+          {appointment.procedure?.name ?? "—"}
+        </span>
+      );
+    },
+  },
+  {
     id: "price",
     accessorKey: "appointmentPriceInCents",
     header: "Valor",
@@ -100,6 +117,22 @@ export const appointmentsTableColumns: ColumnDef<AppointmentWithRelations>[] = [
         currency: "BRL",
       }).format(price);
       return <span className="font-semibold">{formatted}</span>;
+    },
+  },
+  {
+    id: "notes",
+    accessorKey: "notes",
+    header: "Observações",
+    cell: (params) => {
+      const appointment = params.row.original;
+      const notes = appointment.notes;
+      if (!notes) return <span className="text-muted-foreground">—</span>;
+      const truncated = notes.length > 50 ? notes.slice(0, 50) + "..." : notes;
+      return (
+        <span className="text-sm text-muted-foreground" title={notes}>
+          {truncated}
+        </span>
+      );
     },
   },
   {

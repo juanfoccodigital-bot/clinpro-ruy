@@ -244,7 +244,7 @@ export function TopNavigation() {
         <div className="flex h-14 items-center gap-2.5 px-4 lg:px-5">
           {/* Logo */}
           <Link href="/dashboard" className="mr-3 shrink-0 flex items-center gap-2.5 group">
-            <Image src="/logoelo.png" alt="Elo Clinic" width={36} height={36} className="transition-transform duration-300 group-hover:scale-105" />
+            <Image src="/logo-header.png" alt="Elo Clinic" width={40} height={20} className="transition-transform duration-300 group-hover:scale-105" />
             <span className="text-sm font-bold tracking-tight hidden sm:block text-gradient">
               {clinicName || "Elo Clinic"}
             </span>
@@ -400,7 +400,7 @@ export function TopNavigation() {
               <SheetContent side="left" className="w-72 p-0">
                 <SheetHeader className="border-b border-amber-500/10 p-4">
                   <SheetTitle className="flex items-center gap-2.5">
-                    <Image src="/logoelo.png" alt="Elo Clinic" width={32} height={32} />
+                    <Image src="/logo-header.png" alt="Elo Clinic" width={40} height={20} />
                     <span className="text-sm font-bold tracking-tight text-gradient">
                       {clinicName || "Elo Clinic"}
                     </span>

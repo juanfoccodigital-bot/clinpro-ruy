@@ -68,6 +68,8 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     leadsBySource,
     totalPatientsAll,
     recentLeadsTotal,
+    pendingReceivables,
+    overdueCount,
   } = await getDashboard({
     from,
     to,
@@ -153,6 +155,12 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
               totalAppointments={totalAppointments.total}
               totalPatients={totalPatients.total}
               activeConversations={activeConversations.total}
+              pendingReceivables={
+                pendingReceivables.total
+                  ? Number(pendingReceivables.total)
+                  : null
+              }
+              overdueCount={overdueCount.total}
             />
           </div>
 

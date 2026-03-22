@@ -45,6 +45,8 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     recentTransactions,
     upcomingAppointments,
     appointmentDates,
+    [pendingReceivables],
+    [overdueCount],
   ] = await Promise.all([
     db
       .select({
@@ -196,6 +198,31 @@ export const getDashboard = async ({ from, to, session }: Params) => {
         ),
       )
       .groupBy(sql`DATE(${appointmentsTable.date})`),
+    // Pending receivables (sum of pending income transactions)
+    db
+      .select({
+        total: sum(financialTransactionsTable.amountInCents),
+      })
+      .from(financialTransactionsTable)
+      .where(
+        and(
+          eq(financialTransactionsTable.clinicId, clinicId),
+          eq(financialTransactionsTable.type, "income"),
+          eq(financialTransactionsTable.status, "pending"),
+        ),
+      ),
+    // Overdue transactions count
+    db
+      .select({
+        total: count(),
+      })
+      .from(financialTransactionsTable)
+      .where(
+        and(
+          eq(financialTransactionsTable.clinicId, clinicId),
+          eq(financialTransactionsTable.status, "overdue"),
+        ),
+      ),
   ]);
 
   // Build recent activities feed
@@ -308,5 +335,7 @@ export const getDashboard = async ({ from, to, session }: Params) => {
     leadsBySource,
     totalPatientsAll,
     recentLeadsTotal,
+    pendingReceivables,
+    overdueCount,
   };
 };
