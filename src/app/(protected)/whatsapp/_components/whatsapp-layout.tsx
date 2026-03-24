@@ -651,6 +651,12 @@ export default function WhatsAppLayout({
             <Settings2 className="mr-1.5 h-4 w-4" />
             Templates
           </Button>
+          <Link href="/whatsapp/configuracoes">
+            <Button variant="outline" size="sm">
+              <Settings2 className="mr-1.5 h-4 w-4" />
+              Configurações
+            </Button>
+          </Link>
           {activeConnection && isConnected ? (
             <Button
               variant="outline"
