@@ -10,25 +10,8 @@ import {
 } from "@/db/schema";
 
 export async function POST(request: NextRequest) {
-  // Verify webhook authenticity
-  const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
-  if (webhookSecret) {
-    const signature =
-      request.headers.get("x-webhook-secret") ||
-      request.headers.get("authorization");
-    if (
-      signature !== webhookSecret &&
-      signature !== `Bearer ${webhookSecret}`
-    ) {
-      console.warn("[WhatsApp Webhook] Unauthorized request rejected");
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  } else if (process.env.NODE_ENV === "production") {
-    return Response.json(
-      { error: "Webhook secret not configured" },
-      { status: 500 },
-    );
-  }
+  // Evolution API sends webhooks without custom auth headers
+  // We validate by checking that the instanceName exists in our database
 
   try {
     const body = await request.json();
