@@ -28,7 +28,7 @@ const StatsCards = ({
   pendingReceivables,
   overdueCount,
 }: StatsCardsProps) => {
-  const stats = [
+  const stats: { title: string; value: string; icon: typeof DollarSignIcon; gradient: string; glow: string; bg: string; trend: { value: number; up: boolean } | null }[] = [
     {
       title: "Faturamento",
       value: totalRevenue ? formatCurrencyInCents(totalRevenue) : "R$ 0,00",
@@ -36,7 +36,7 @@ const StatsCards = ({
       gradient: "from-[#D08C32] to-[#B8740A]",
       glow: "shadow-[#D08C32]/25",
       bg: "from-[#D08C32]/6 via-[#D3AB32]/3 to-transparent",
-      trend: { value: 12.5, up: true },
+      trend: null,
     },
     {
       title: "A Receber",
@@ -65,7 +65,7 @@ const StatsCards = ({
       gradient: "from-[#D3AB32] to-[#D08C32]",
       glow: "shadow-[#D3AB32]/25",
       bg: "from-[#D3AB32]/6 via-[#D08C32]/3 to-transparent",
-      trend: { value: 8.2, up: true },
+      trend: null,
     },
     {
       title: "Pacientes",
@@ -74,7 +74,7 @@ const StatsCards = ({
       gradient: "from-[#B8740A] to-[#D08C32]",
       glow: "shadow-[#B8740A]/25",
       bg: "from-[#B8740A]/5 via-[#D08C32]/3 to-transparent",
-      trend: { value: 3.1, up: true },
+      trend: null,
     },
     {
       title: "Conversas Ativas",
@@ -83,7 +83,7 @@ const StatsCards = ({
       gradient: "from-[#D08C32] to-[#D3AB32]",
       glow: "shadow-[#D08C32]/25",
       bg: "from-[#D08C32]/5 via-[#D3AB32]/3 to-transparent",
-      trend: { value: 2.4, up: false },
+      trend: null,
     },
   ];
 
