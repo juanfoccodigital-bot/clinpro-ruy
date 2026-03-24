@@ -1516,6 +1516,8 @@ export const whatsappConnectionsTable = pgTable("whatsapp_connections", {
     .notNull(),
   apiUrl: text("api_url").notNull(),
   apiKey: text("api_key").notNull(),
+  signatureText: text("signature_text"),
+  signatureEnabled: boolean("signature_enabled").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

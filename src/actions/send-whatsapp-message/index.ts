@@ -34,9 +34,15 @@ export const sendWhatsappMessage = protectedWithClinicActionClient
     });
 
     try {
+      // Append signature if enabled
+      let finalContent = parsedInput.content;
+      if (connection.signatureEnabled && connection.signatureText) {
+        finalContent = `${parsedInput.content}\n\n*${connection.signatureText}*`;
+      }
+
       const result = await client.sendTextMessage(
         parsedInput.remotePhone,
-        parsedInput.content,
+        finalContent,
       );
 
       await db.insert(whatsappMessagesTable).values({
@@ -45,7 +51,7 @@ export const sendWhatsappMessage = protectedWithClinicActionClient
         remotePhone: parsedInput.remotePhone,
         direction: "outbound",
         messageType: "text",
-        content: parsedInput.content,
+        content: finalContent,
         status: "sent",
         externalId: result?.key?.id || null,
         sentByUserId: ctx.user.id,
