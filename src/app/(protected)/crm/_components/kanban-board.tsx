@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { DragEvent, useMemo, useState, useTransition } from "react";
+import React, { DragEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -77,6 +77,12 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
   const [detailOpen, setDetailOpen] = useState(false);
   const [draggedContactId, setDraggedContactId] = useState<string | null>(null);
   const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
+  const [localContacts, setLocalContacts] = useState(contacts);
+
+  // Sync local state when props change (after server refresh)
+  useEffect(() => {
+    setLocalContacts(contacts);
+  }, [contacts]);
 
   const sortedStages = useMemo(() => [...stages].sort((a, b) => a.order - b.order), [stages]);
 
@@ -107,11 +113,11 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
     return set;
   }, [checklistData]);
 
-  // Group contacts by stage
+  // Group contacts by stage (uses localContacts for optimistic updates)
   const contactsByStage = useMemo(() => {
     const map: Record<string, ContactWithStage[]> = { unassigned: [] };
     sortedStages.forEach((s) => { map[s.id] = []; });
-    contacts.forEach((c) => {
+    localContacts.forEach((c) => {
       const sid = c.stage?.stageId;
       if (sid && map[sid]) {
         map[sid].push(c);
@@ -128,6 +134,24 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
   };
 
   const handleMoveToStage = (contactId: string, stageId: string) => {
+    // Optimistic update — move in UI immediately
+    setLocalContacts((prev) =>
+      prev.map((c) => {
+        if (c.id !== contactId) return c;
+        if (stageId === "unassigned") return { ...c, stage: null };
+        return {
+          ...c,
+          stage: {
+            id: c.stage?.id || "",
+            stageId,
+            notes: c.stage?.notes || null,
+          },
+        };
+      })
+    );
+    toast.success("Contato movido");
+
+    // Sync with server in background
     startTransition(async () => {
       try {
         if (stageId === "unassigned") {
@@ -135,10 +159,9 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
         } else {
           await moveContactToStage({ patientId: contactId, stageId });
         }
-        toast.success("Contato movido");
         router.refresh();
       } catch {
-        toast.error("Erro ao mover contato");
+        toast.error("Erro ao sincronizar — recarregue a página");
       }
     });
   };
@@ -187,7 +210,7 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
     setDraggedContactId(null);
     setDragOverStageId(null);
     if (!contactId) return;
-    const contact = contacts.find((c) => c.id === contactId);
+    const contact = localContacts.find((c) => c.id === contactId);
     if (!contact) return;
     const currentStageId = contact.stage?.stageId || "unassigned";
     if (currentStageId === stageId) return;
@@ -429,8 +452,8 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
     );
   };
 
-  const totalInPipeline = contacts.filter(c => c.stage).length;
-  const totalUnassigned = contacts.filter(c => !c.stage).length;
+  const totalInPipeline = localContacts.filter(c => c.stage).length;
+  const totalUnassigned = localContacts.filter(c => !c.stage).length;
 
   return (
     <div className="space-y-4">
