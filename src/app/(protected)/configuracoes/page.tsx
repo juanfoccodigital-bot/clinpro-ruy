@@ -20,6 +20,7 @@ import { auth } from "@/lib/auth";
 import ClinicSettingsForm from "./_components/clinic-settings-form";
 import MembersManagement from "./_components/members-management";
 import PlanOverview from "./_components/plan-overview";
+import ProfileSettings from "./_components/profile-settings";
 import TwoFactorSettings from "./_components/two-factor-settings";
 
 const ConfiguracoesPage = async () => {
@@ -57,13 +58,25 @@ const ConfiguracoesPage = async () => {
           description="Gerencie as configuracoes da sua clinica, equipe e plano"
         />
         <PageContent>
-          <Tabs defaultValue="clinic" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="profile">Perfil</TabsTrigger>
               <TabsTrigger value="clinic">Clinica</TabsTrigger>
               <TabsTrigger value="members">Equipe</TabsTrigger>
               <TabsTrigger value="security">Seguranca</TabsTrigger>
               <TabsTrigger value="plan">Plano</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="profile">
+              <ProfileSettings
+                user={{
+                  id: session!.user.id,
+                  name: session!.user.name,
+                  email: session!.user.email,
+                  image: session!.user.image || null,
+                }}
+              />
+            </TabsContent>
 
             <TabsContent value="clinic">
               <ClinicSettingsForm

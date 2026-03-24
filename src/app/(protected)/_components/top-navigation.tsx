@@ -224,6 +224,7 @@ export function TopNavigation() {
   };
 
   const userName = session.data?.user?.name || "Usuario";
+  const userImage = session.data?.user?.image || null;
   const userInitials =
     userName
       .split(" ")
@@ -372,9 +373,13 @@ export function TopNavigation() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-colors hover:bg-muted outline-none">
                   <Avatar className="h-8 w-8 ring-2 ring-[#D08C32]/15">
-                    <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-xs font-semibold">
-                      {userInitials}
-                    </AvatarFallback>
+                    {userImage ? (
+                      <img src={userImage} alt={userName} className="h-full w-full object-cover rounded-full" />
+                    ) : (
+                      <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-xs font-semibold">
+                        {userInitials}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="hidden text-left md:block">
                     <p className="text-sm font-semibold leading-tight">{userName}</p>
@@ -537,9 +542,13 @@ export function TopNavigation() {
                 <div className="border-t border-[#D08C32]/10 p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 ring-2 ring-[#D08C32]/15">
-                      <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-sm font-semibold">
-                        {userInitials}
-                      </AvatarFallback>
+                      {userImage ? (
+                        <img src={userImage} alt={userName} className="h-full w-full object-cover rounded-full" />
+                      ) : (
+                        <AvatarFallback className="bg-gradient-to-br from-[#D08C32] to-[#D3AB32] text-white text-sm font-semibold">
+                          {userInitials}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold leading-tight truncate">{userName}</p>
