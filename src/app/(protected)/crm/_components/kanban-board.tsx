@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DragEvent, useMemo, useState, useTransition } from "react";
+import React, { DragEvent, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -388,10 +388,44 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
               {isOver ? "Soltar aqui" : "Arraste leads para cá"}
             </div>
           ) : (
-            columnContacts.map((c) => renderContactCard(c, stageId))
+            <ColumnCards contacts={columnContacts} stageId={stageId} renderCard={renderContactCard} />
           )}
         </div>
       </div>
+    );
+  };
+
+  // Paginated column component to avoid rendering 300+ cards
+  const ColumnCards = ({ contacts: colContacts, stageId, renderCard }: {
+    contacts: ContactWithStage[];
+    stageId: string;
+    renderCard: (c: ContactWithStage, sid: string) => React.ReactNode
+  }) => {
+    const INITIAL_SHOW = 15;
+    const [showAll, setShowAll] = useState(false);
+    const visible = showAll ? colContacts : colContacts.slice(0, INITIAL_SHOW);
+    const remaining = colContacts.length - INITIAL_SHOW;
+
+    return (
+      <>
+        {visible.map((c) => renderCard(c, stageId))}
+        {!showAll && remaining > 0 && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="w-full rounded-lg border border-dashed border-muted-foreground/30 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            Ver mais {remaining} contato{remaining > 1 ? "s" : ""}
+          </button>
+        )}
+        {showAll && remaining > 0 && (
+          <button
+            onClick={() => setShowAll(false)}
+            className="w-full rounded-lg border border-dashed border-muted-foreground/30 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+          >
+            Mostrar menos
+          </button>
+        )}
+      </>
     );
   };
 
