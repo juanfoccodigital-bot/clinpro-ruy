@@ -607,6 +607,17 @@ export default function WhatsAppLayout({
     return date.format("DD/MM/YY");
   };
 
+  // Format WhatsApp text: *bold*, _italic_, ~strikethrough~
+  const formatWhatsAppText = (text: string): string => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\*([^*]+)\*/g, "<strong>$1</strong>")
+      .replace(/_([^_]+)_/g, "<em>$1</em>")
+      .replace(/~([^~]+)~/g, "<del>$1</del>");
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Header */}
@@ -1064,9 +1075,10 @@ export default function WhatsAppLayout({
                           )}
                           {/* Text content (caption or message) */}
                           {msg.content && msg.messageType !== "document" && (
-                            <p className="whitespace-pre-wrap text-sm leading-snug">
-                              {msg.content}
-                            </p>
+                            <p
+                              className="whitespace-pre-wrap text-sm leading-snug"
+                              dangerouslySetInnerHTML={{ __html: formatWhatsAppText(msg.content) }}
+                            />
                           )}
                           {msg.messageType === "text" && !msg.content && (
                             <p className="whitespace-pre-wrap text-sm leading-snug">
