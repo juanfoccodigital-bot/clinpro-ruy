@@ -83,12 +83,11 @@ const allNavGroups: NavGroup[] = [
   {
     title: "Atendimento",
     icon: CalendarDays,
-    matchPaths: ["/appointments", "/agenda", "/whatsapp", "/procedimentos"],
+    matchPaths: ["/appointments", "/agenda", "/procedimentos"],
     items: [
       { title: "Procedimentos", url: "/procedimentos", icon: ClipboardList },
       { title: "Agendamentos", url: "/appointments", icon: CalendarDays },
       { title: "Agenda", url: "/agenda", icon: CalendarRange },
-      { title: "WhatsApp", url: "/whatsapp", icon: MessageCircle },
     ],
   },
   {
@@ -110,11 +109,13 @@ const allNavGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Agente IA",
-    icon: Bot,
-    matchPaths: ["/secretaria-ia"],
+    title: "WhatsApp",
+    icon: MessageCircle,
+    matchPaths: ["/whatsapp", "/secretaria-ia"],
     items: [
+      { title: "Conversas", url: "/whatsapp", icon: MessageCircle },
       { title: "Secretar.IA", url: "/secretaria-ia", icon: Bot },
+      { title: "Configurações", url: "/whatsapp/configuracoes", icon: Settings },
     ],
   },
   {

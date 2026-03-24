@@ -374,14 +374,15 @@ export default function KanbanBoard({ stages, contacts, checklistData }: KanbanB
           </div>
         </div>
 
-        {/* Cards */}
+        {/* Cards — max height for ~10 cards, scroll for more */}
         <div
-          className={`flex flex-1 flex-col gap-2.5 overflow-y-auto rounded-xl p-2 transition-colors ${
+          className={`flex flex-col gap-2.5 overflow-y-auto rounded-xl p-2 transition-colors ${
             isOver ? "bg-primary/5 ring-2 ring-primary/20" : "bg-muted/10"
           }`}
+          style={{ maxHeight: "calc(100vh - 280px)", minHeight: "200px" }}
         >
           {columnContacts.length === 0 ? (
-            <div className={`flex flex-1 items-center justify-center rounded-xl border-2 border-dashed p-6 text-center text-xs text-muted-foreground transition-colors ${
+            <div className={`flex items-center justify-center rounded-xl border-2 border-dashed p-6 text-center text-xs text-muted-foreground transition-colors min-h-[200px] ${
               isOver ? "border-primary/40 bg-primary/5" : "border-muted"
             }`}>
               {isOver ? "Soltar aqui" : "Arraste leads para cá"}
