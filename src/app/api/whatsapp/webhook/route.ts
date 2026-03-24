@@ -13,12 +13,21 @@ export async function POST(request: NextRequest) {
   // Verify webhook authenticity
   const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
   if (webhookSecret) {
-    const signature = request.headers.get("x-webhook-secret") || request.headers.get("authorization");
-    if (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
+    const signature =
+      request.headers.get("x-webhook-secret") ||
+      request.headers.get("authorization");
+    if (
+      signature !== webhookSecret &&
+      signature !== `Bearer ${webhookSecret}`
+    ) {
+      console.warn("[WhatsApp Webhook] Unauthorized request rejected");
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
   } else if (process.env.NODE_ENV === "production") {
-    return Response.json({ error: "Webhook secret not configured" }, { status: 500 });
+    return Response.json(
+      { error: "Webhook secret not configured" },
+      { status: 500 },
+    );
   }
 
   try {
@@ -26,15 +35,31 @@ export async function POST(request: NextRequest) {
     const event = body.event;
     const instanceName = body.instance;
 
-    // console.log(`[WhatsApp Webhook] Event: ${event}, Instance: ${instanceName}`);
+    console.log(
+      `[WhatsApp Webhook] Event: ${event}, Instance: ${instanceName}`,
+    );
 
+    // ─── MESSAGES_UPSERT ────────────────────────────────────────────────
     if (event === "messages.upsert" || event === "MESSAGES_UPSERT") {
       const data = body.data;
 
-      // Ignore group messages (JIDs ending with @g.us)
+      // Ignore status/system messages (status@broadcast)
       const remoteJid = data.key?.remoteJid || "";
-      if (remoteJid.endsWith("@g.us") || remoteJid.includes("@broadcast")) {
-        // console.log(`[WhatsApp Webhook] Ignoring group/broadcast message from: ${remoteJid}`);
+      if (
+        remoteJid.endsWith("@g.us") ||
+        remoteJid.includes("@broadcast") ||
+        remoteJid === "status@broadcast"
+      ) {
+        return NextResponse.json({ success: true });
+      }
+
+      // Ignore protocol/notification messages that have no actual content
+      const msgType = data.messageType;
+      if (
+        msgType === "protocolMessage" ||
+        msgType === "reactionMessage" ||
+        msgType === "ephemeralMessage"
+      ) {
         return NextResponse.json({ success: true });
       }
 
@@ -43,7 +68,9 @@ export async function POST(request: NextRequest) {
       });
 
       if (!connection) {
-        console.error(`[WhatsApp Webhook] Connection not found for instance: ${instanceName}`);
+        console.error(
+          `[WhatsApp Webhook] Connection not found for instance: ${instanceName}`,
+        );
         return NextResponse.json(
           { error: "Connection not found" },
           { status: 404 },
@@ -53,76 +80,114 @@ export async function POST(request: NextRequest) {
       const remotePhone = remoteJid.replace("@s.whatsapp.net", "");
       const isFromMe = data.key?.fromMe || false;
 
-      // Determine message type and extract content/media
+      // Skip saving outbound messages that were sent from this system
+      // (they are already saved by the sendWhatsappMessage action)
+      // But still process them for conversation updates
+      const existingMessage = isFromMe && data.key?.id
+        ? await db.query.whatsappMessagesTable.findFirst({
+            where: eq(whatsappMessagesTable.externalId, data.key.id),
+          })
+        : null;
+
+      // ── Determine message type and extract content/media ──
       // IMPORTANT: base64 is preferred over url/directPath because WhatsApp
       // internal URLs are encrypted and not publicly accessible
-      let messageType: "text" | "image" | "audio" | "video" | "document" = "text";
+      let messageType:
+        | "text"
+        | "image"
+        | "audio"
+        | "video"
+        | "document" = "text";
       let content = "";
       let mediaUrl: string | null = null;
 
-      if (data.message?.imageMessage) {
+      const msg = data.message;
+
+      if (msg?.imageMessage) {
         messageType = "image";
-        content = data.message.imageMessage.caption || "";
-        const img = data.message.imageMessage;
-        if (img.base64) {
-          mediaUrl = `data:${img.mimetype || "image/jpeg"};base64,${img.base64}`;
+        content = msg.imageMessage.caption || "";
+        if (msg.imageMessage.base64) {
+          const mime = msg.imageMessage.mimetype || "image/jpeg";
+          mediaUrl = `data:${mime};base64,${msg.imageMessage.base64}`;
         }
-      } else if (data.message?.audioMessage) {
+      } else if (msg?.audioMessage) {
         messageType = "audio";
-        const aud = data.message.audioMessage;
-        if (aud.base64) {
-          mediaUrl = `data:${aud.mimetype || "audio/ogg"};base64,${aud.base64}`;
+        content = "";
+        if (msg.audioMessage.base64) {
+          const mime = msg.audioMessage.mimetype || "audio/ogg";
+          mediaUrl = `data:${mime};base64,${msg.audioMessage.base64}`;
         }
-      } else if (data.message?.videoMessage) {
+      } else if (msg?.videoMessage) {
         messageType = "video";
-        content = data.message.videoMessage.caption || "";
-        const vid = data.message.videoMessage;
-        if (vid.base64) {
-          mediaUrl = `data:${vid.mimetype || "video/mp4"};base64,${vid.base64}`;
+        content = msg.videoMessage.caption || "";
+        if (msg.videoMessage.base64) {
+          const mime = msg.videoMessage.mimetype || "video/mp4";
+          mediaUrl = `data:${mime};base64,${msg.videoMessage.base64}`;
         }
-      } else if (data.message?.documentMessage) {
+      } else if (msg?.documentMessage || msg?.documentWithCaptionMessage?.message?.documentMessage) {
         messageType = "document";
-        const doc = data.message.documentMessage;
+        const doc = msg.documentMessage || msg.documentWithCaptionMessage.message.documentMessage;
         content = doc.fileName || doc.caption || "";
         if (doc.base64) {
-          mediaUrl = `data:${doc.mimetype || "application/octet-stream"};base64,${doc.base64}`;
+          const mime = doc.mimetype || "application/octet-stream";
+          mediaUrl = `data:${mime};base64,${doc.base64}`;
         }
-      } else {
-        content = data.message?.conversation
-          || data.message?.extendedTextMessage?.text
-          || "";
+      } else if (msg?.stickerMessage) {
+        // Treat stickers as images
+        messageType = "image";
+        content = "";
+        if (msg.stickerMessage.base64) {
+          const mime = msg.stickerMessage.mimetype || "image/webp";
+          mediaUrl = `data:${mime};base64,${msg.stickerMessage.base64}`;
+        }
+      } else if (msg?.conversation || msg?.extendedTextMessage) {
+        messageType = "text";
+        content = msg.conversation || msg.extendedTextMessage?.text || "";
+      } else if (msg?.buttonsResponseMessage) {
+        messageType = "text";
+        content = msg.buttonsResponseMessage.selectedDisplayText || "";
+      } else if (msg?.listResponseMessage) {
+        messageType = "text";
+        content = msg.listResponseMessage.title || msg.listResponseMessage.singleSelectReply?.selectedRowId || "";
       }
 
-      // Fallback: check for base64 at message level (some Evolution API versions)
-      if (!mediaUrl && messageType !== "text" && data.message?.base64) {
+      // Fallback: check for base64 at message level (some Evolution API versions put it here)
+      if (!mediaUrl && messageType !== "text" && msg?.base64) {
         const fallbackMimeMap: Record<string, string> = {
           audio: "audio/ogg",
           image: "image/jpeg",
           video: "video/mp4",
           document: "application/octet-stream",
         };
-        const mime = data.message?.mimetype || fallbackMimeMap[messageType] || "application/octet-stream";
-        mediaUrl = `data:${mime};base64,${data.message.base64}`;
+        const mime =
+          msg.mimetype ||
+          fallbackMimeMap[messageType] ||
+          "application/octet-stream";
+        mediaUrl = `data:${mime};base64,${msg.base64}`;
       }
 
       const direction = isFromMe ? "outbound" : "inbound";
 
-      // Save message
-      await db.insert(whatsappMessagesTable).values({
-        clinicId: connection.clinicId,
-        connectionId: connection.id,
-        remotePhone,
-        direction,
-        messageType,
-        content,
-        mediaUrl,
-        status: isFromMe ? "sent" : "delivered",
-        externalId: data.key?.id || null,
-      });
+      // Save message (only if not already saved by send action)
+      if (!existingMessage) {
+        await db.insert(whatsappMessagesTable).values({
+          clinicId: connection.clinicId,
+          connectionId: connection.id,
+          remotePhone,
+          direction,
+          messageType,
+          content,
+          mediaUrl,
+          status: isFromMe ? "sent" : "delivered",
+          externalId: data.key?.id || null,
+        });
+      }
 
-      // console.log(`[WhatsApp Webhook] Message saved: ${direction} from ${remotePhone} (${messageType})`);
+      console.log(
+        `[WhatsApp Webhook] Message ${existingMessage ? "already exists" : "saved"}: ${direction} ${remotePhone} (${messageType})`,
+      );
 
-      // Get or create contact
+      // ── Get or create contact ──
       let contact = await db.query.whatsappContactsTable.findFirst({
         where: and(
           eq(whatsappContactsTable.clinicId, connection.clinicId),
@@ -131,6 +196,7 @@ export async function POST(request: NextRequest) {
       });
 
       const pushName = data.pushName || null;
+      const profilePicUrl = data.profilePictureUrl || null;
 
       if (!contact) {
         const [newContact] = await db
@@ -139,18 +205,31 @@ export async function POST(request: NextRequest) {
             clinicId: connection.clinicId,
             phoneNumber: remotePhone,
             name: pushName,
+            profilePictureUrl: profilePicUrl,
           })
           .returning();
         contact = newContact;
-      } else if (pushName && (!contact.name || contact.name === contact.phoneNumber)) {
-        // Update name if pushName exists and contact has no name or name is just the phone number
-        await db
-          .update(whatsappContactsTable)
-          .set({ name: pushName })
-          .where(eq(whatsappContactsTable.id, contact.id));
+      } else {
+        // Update contact info if we have new data
+        const updates: Record<string, unknown> = {};
+        if (
+          pushName &&
+          (!contact.name || contact.name === contact.phoneNumber)
+        ) {
+          updates.name = pushName;
+        }
+        if (profilePicUrl && contact.profilePictureUrl !== profilePicUrl) {
+          updates.profilePictureUrl = profilePicUrl;
+        }
+        if (Object.keys(updates).length > 0) {
+          await db
+            .update(whatsappContactsTable)
+            .set(updates)
+            .where(eq(whatsappContactsTable.id, contact.id));
+        }
       }
 
-      // Update or create conversation
+      // ── Update or create conversation ──
       const existingConv =
         await db.query.whatsappConversationsTable.findFirst({
           where: and(
@@ -160,12 +239,28 @@ export async function POST(request: NextRequest) {
           ),
         });
 
-      const lastContent = content
-        || (messageType === "image" ? "📷 Imagem" : "")
-        || (messageType === "audio" ? "🎵 Audio" : "")
-        || (messageType === "video" ? "🎬 Video" : "")
-        || (messageType === "document" ? "📄 Documento" : "")
-        || "Midia";
+      // Build display content for conversation preview
+      let lastContent: string;
+      if (content) {
+        lastContent = content;
+      } else {
+        switch (messageType) {
+          case "image":
+            lastContent = "Imagem";
+            break;
+          case "audio":
+            lastContent = "Audio";
+            break;
+          case "video":
+            lastContent = "Video";
+            break;
+          case "document":
+            lastContent = "Documento";
+            break;
+          default:
+            lastContent = "Midia";
+        }
+      }
 
       if (existingConv) {
         const updateData: Record<string, unknown> = {
@@ -201,12 +296,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ─── CONNECTION_UPDATE ──────────────────────────────────────────────
     if (event === "connection.update" || event === "CONNECTION_UPDATE") {
-      const instanceName = body.instance;
       const state = body.data?.state;
 
       if (instanceName && state) {
-        const statusMap: Record<string, string> = {
+        const statusMap: Record<
+          string,
+          "connected" | "disconnected" | "connecting"
+        > = {
           open: "connected",
           close: "disconnected",
           connecting: "connecting",
@@ -219,20 +317,25 @@ export async function POST(request: NextRequest) {
         if (connection && statusMap[state]) {
           await db
             .update(whatsappConnectionsTable)
-            .set({
-              status: statusMap[state] as
-                | "connected"
-                | "disconnected"
-                | "connecting",
-            })
+            .set({ status: statusMap[state] })
             .where(eq(whatsappConnectionsTable.id, connection.id));
+          console.log(
+            `[WhatsApp Webhook] Connection ${instanceName} status: ${statusMap[state]}`,
+          );
         }
       }
     }
 
+    // ─── QRCODE_UPDATED ────────────────────────────────────────────────
+    if (event === "qrcode.updated" || event === "QRCODE_UPDATED") {
+      console.log(
+        `[WhatsApp Webhook] QR Code updated for instance: ${instanceName}`,
+      );
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("WhatsApp webhook error:", error);
+    console.error("[WhatsApp Webhook] Error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

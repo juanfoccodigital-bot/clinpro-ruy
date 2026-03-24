@@ -24,7 +24,8 @@
       "Bash(ls \"/Users/usuario/Downloads/clinpro-main/src/app/\\(protected\\)/appointments/_components/\")",
       "Bash(cat \"/Users/usuario/Downloads/clinpro-main/src/app/\\(protected\\)/appointments/_components/add-appointment-form.tsx\")",
       "Bash(cat \"/Users/usuario/Downloads/clinpro-main/src/app/\\(protected\\)/agenda/_components/calendar-view.tsx\")",
-      "Bash(grep -l \"add.*patient\\\\|create.*patient\\\\|delete.*patient\" /Users/usuario/Downloads/clinpro-main/src/actions/*.ts)"
+      "Bash(grep -l \"add.*patient\\\\|create.*patient\\\\|delete.*patient\" /Users/usuario/Downloads/clinpro-main/src/actions/*.ts)",
+      "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" https://evolution.fyreoficial.com.br/instance/fetchInstances -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\")"
     ],
     "additionalDirectories": [
       "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\"",

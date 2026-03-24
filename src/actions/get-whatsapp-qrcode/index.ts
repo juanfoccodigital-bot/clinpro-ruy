@@ -30,7 +30,9 @@ export const getWhatsappQrCode = protectedWithClinicActionClient
     });
 
     const result = await client.getQrCode();
-    return {
-      qrCode: result?.qrcode?.base64 || result?.base64 || null,
-    };
+    let qrCode = result?.qrcode?.base64 || result?.base64 || null;
+    if (qrCode && !qrCode.startsWith("data:")) {
+      qrCode = `data:image/png;base64,${qrCode}`;
+    }
+    return { qrCode };
   });

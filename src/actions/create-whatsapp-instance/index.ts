@@ -29,8 +29,11 @@ export const createWhatsappInstance = protectedWithClinicActionClient
       instanceName: parsedInput.instanceName,
     });
 
-    // Build webhook URL
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Build webhook URL - prefer BETTER_AUTH_URL (always the canonical production URL)
+    const appUrl =
+      process.env.BETTER_AUTH_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "http://localhost:3000";
     const webhookUrl = `${appUrl}/api/whatsapp/webhook`;
     console.log(`[WhatsApp] Creating instance with webhook: ${webhookUrl}`);
 
@@ -69,9 +72,14 @@ export const createWhatsappInstance = protectedWithClinicActionClient
     });
     revalidatePath("/whatsapp");
 
-    // Return QR code
+    // Return QR code - ensure it has the data URI prefix for <img> rendering
+    let qrCode = result?.qrcode?.base64 || result?.base64 || null;
+    if (qrCode && !qrCode.startsWith("data:")) {
+      qrCode = `data:image/png;base64,${qrCode}`;
+    }
+
     return {
-      qrCode: result?.qrcode?.base64 || result?.base64 || null,
+      qrCode,
       instanceName: parsedInput.instanceName,
     };
   });

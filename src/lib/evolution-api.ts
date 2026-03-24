@@ -31,6 +31,7 @@ export class EvolutionApiClient {
 
     if (!response.ok) {
       const error = await response.text();
+      console.error(`[EvolutionAPI] ${options.method || "GET"} ${endpoint} -> ${response.status}: ${error}`);
       throw new Error(`Evolution API error: ${response.status} - ${error}`);
     }
 
@@ -38,6 +39,7 @@ export class EvolutionApiClient {
   }
 
   async createInstance(webhookUrl?: string) {
+    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
     const payload: Record<string, unknown> = {
       instanceName: this.config.instanceName,
       qrcode: true,
@@ -45,12 +47,22 @@ export class EvolutionApiClient {
     };
 
     if (webhookUrl) {
-      payload.webhook = {
+      const webhookConfig: Record<string, unknown> = {
         url: webhookUrl,
         byEvents: false,
         base64: true,
-        events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+        events: [
+          "MESSAGES_UPSERT",
+          "CONNECTION_UPDATE",
+          "QRCODE_UPDATED",
+        ],
       };
+      if (webhookSecret) {
+        webhookConfig.headers = {
+          "x-webhook-secret": webhookSecret,
+        };
+      }
+      payload.webhook = webhookConfig;
     }
 
     return this.request("/instance/create", {
@@ -84,17 +96,26 @@ export class EvolutionApiClient {
   }
 
   async setWebhook(webhookUrl: string) {
+    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
+    const payload: Record<string, unknown> = {
+      url: webhookUrl,
+      webhook_by_events: false,
+      webhook_base64: true,
+      events: [
+        "MESSAGES_UPSERT",
+        "CONNECTION_UPDATE",
+        "QRCODE_UPDATED",
+      ],
+    };
+    if (webhookSecret) {
+      payload.headers = {
+        "x-webhook-secret": webhookSecret,
+      };
+    }
+
     return this.request(`/webhook/set/${this.config.instanceName}`, {
       method: "POST",
-      body: JSON.stringify({
-        url: webhookUrl,
-        webhook_by_events: false,
-        webhook_base64: true,
-        events: [
-          "MESSAGES_UPSERT",
-          "CONNECTION_UPDATE",
-        ],
-      }),
+      body: JSON.stringify(payload),
     });
   }
 
@@ -148,5 +169,19 @@ export class EvolutionApiClient {
       method: "POST",
       body: JSON.stringify({}),
     });
+  }
+
+  async getProfilePicture(phone: string) {
+    try {
+      return await this.request(
+        `/chat/fetchProfilePictureUrl/${this.config.instanceName}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ number: phone }),
+        },
+      );
+    } catch {
+      return null;
+    }
   }
 }
