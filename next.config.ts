@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.facebook.com",
       },
+      {
+        protocol: "https",
+        hostname: "pps.whatsapp.net",
+      },
     ],
   },
   logging: {
@@ -46,7 +50,7 @@ const nextConfig: NextConfig = {
                     "default-src 'self'",
                     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
                     "style-src 'self' 'unsafe-inline'",
-                    "img-src 'self' data: blob: https://*.googleusercontent.com https://*.google.com https://*.fbcdn.net https://*.facebook.com",
+                    "img-src 'self' data: blob: https://*.googleusercontent.com https://*.google.com https://*.fbcdn.net https://*.facebook.com https://pps.whatsapp.net",
                     "media-src 'self' data: blob:",
                     "font-src 'self'",
                     "connect-src 'self' data: blob: https://accounts.google.com https://api.stripe.com https://*.supabase.com https://*.supabase.co",

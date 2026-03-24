@@ -32,7 +32,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { getWhatsappStatus } from "@/actions/get-whatsapp-status";
+import { getWhatsappStatus, getWhatsappUnreadCount } from "@/actions/get-whatsapp-status";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -169,15 +169,23 @@ export function TopNavigation() {
   const [whatsappStatus, setWhatsappStatus] = useState<
     "connected" | "disconnected" | null
   >(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getWhatsappStatus().then((status) => {
-      if (!cancelled) setWhatsappStatus(status);
-    });
-    return () => { cancelled = true; };
+    const fetchStatus = () => {
+      getWhatsappStatus().then((status) => {
+        if (!cancelled) setWhatsappStatus(status);
+      });
+      getWhatsappUnreadCount().then((count) => {
+        if (!cancelled) setUnreadCount(count);
+      });
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
   const clinicPlan = (session.data?.user as Record<string, unknown>)?.clinic
@@ -320,12 +328,17 @@ export function TopNavigation() {
                           : "text-red-500",
                       )}
                     />
+                    {unreadCount > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                   </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
                 {whatsappStatus === "connected"
-                  ? "WhatsApp conectado"
+                  ? `WhatsApp conectado${unreadCount > 0 ? ` (${unreadCount} nao lidas)` : ""}`
                   : "WhatsApp desconectado"}
               </TooltipContent>
             </Tooltip>
@@ -503,9 +516,15 @@ export function TopNavigation() {
                       )}
                     />
                     <span>WhatsApp</span>
+                    {unreadCount > 0 && (
+                      <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                     <span
                       className={cn(
-                        "ml-auto h-2 w-2 rounded-full",
+                        unreadCount > 0 ? "ml-1" : "ml-auto",
+                        "h-2 w-2 rounded-full",
                         whatsappStatus === "connected"
                           ? "bg-emerald-500"
                           : "bg-red-500",

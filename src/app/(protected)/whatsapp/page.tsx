@@ -53,6 +53,8 @@ const WhatsAppPage = async () => {
           id: c.id,
           remotePhone: c.remotePhone,
           contactName: c.contactName || c.contact?.name || null,
+          profilePictureUrl: c.contact?.profilePictureUrl || null,
+          contactPatientId: c.contact?.patientId || null,
           isRead: c.isRead,
           isArchived: c.isArchived,
           unreadCount: c.unreadCount,

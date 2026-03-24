@@ -27,6 +27,7 @@ import {
   Square,
   Tag,
   Unplug,
+  UserPlus,
   Users,
   Video,
   Wifi,
@@ -53,7 +54,7 @@ import {
 } from "@/actions/send-whatsapp-message";
 import { toggleConversationArchive } from "@/actions/toggle-conversation-archive";
 import { toggleConversationRead } from "@/actions/toggle-conversation-read";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,6 +80,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
+import ConvertContactDialog from "./convert-contact-dialog";
+import CrmStageWidget from "./crm-stage-widget";
 import LabelsManager from "./labels-manager";
 import TemplatesManager from "./templates-manager";
 
@@ -103,6 +106,8 @@ interface Conversation {
   id: string;
   remotePhone: string;
   contactName: string | null;
+  profilePictureUrl: string | null;
+  contactPatientId: string | null;
   isRead: boolean;
   isArchived: boolean;
   unreadCount: number;
@@ -179,6 +184,7 @@ export default function WhatsAppLayout({
   const [showTemplatesManager, setShowTemplatesManager] = useState(false);
   const [newPhoneInput, setNewPhoneInput] = useState("");
   const [showNewConvDialog, setShowNewConvDialog] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [instanceNameInput, setInstanceNameInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -197,6 +203,7 @@ export default function WhatsAppLayout({
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const prevTotalUnreadRef = useRef(0);
 
   const activeConnection = connections[0];
   const isConnected = activeConnection?.status === "connected";
@@ -206,6 +213,55 @@ export default function WhatsAppLayout({
   useEffect(() => {
     setConversations(initialConversations);
   }, [initialConversations]);
+
+  // Notification sound (Web Audio API beep)
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new AudioContext();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      oscillator.frequency.value = 800;
+      oscillator.type = "sine";
+      gainNode.gain.value = 0.3;
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      oscillator.stop(ctx.currentTime + 0.3);
+    } catch {
+      // Ignore if AudioContext is not supported
+    }
+  }, []);
+
+  // Browser notification
+  const showBrowserNotification = useCallback(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      new Notification("Nova mensagem", {
+        body: "Voce recebeu uma nova mensagem no WhatsApp",
+        icon: "/logoelo.png",
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Detect new unread messages and trigger notifications
+  useEffect(() => {
+    const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+    if (totalUnread > prevTotalUnreadRef.current && prevTotalUnreadRef.current >= 0) {
+      playNotificationSound();
+      showBrowserNotification();
+    }
+    prevTotalUnreadRef.current = totalUnread;
+  }, [conversations, playNotificationSound, showBrowserNotification]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   const selectedConv = conversations.find((c) => c.id === selectedConvId);
 
@@ -671,6 +727,9 @@ export default function WhatsAppLayout({
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className="h-10 w-10 shrink-0">
+                      {conv.profilePictureUrl && (
+                        <AvatarImage src={conv.profilePictureUrl} alt={conv.contactName || conv.remotePhone} />
+                      )}
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {(conv.contactName || conv.remotePhone)[0]?.toUpperCase()}
                       </AvatarFallback>
@@ -732,6 +791,9 @@ export default function WhatsAppLayout({
               <div className="flex items-center justify-between border-b bg-background px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
+                    {selectedConv.profilePictureUrl && (
+                      <AvatarImage src={selectedConv.profilePictureUrl} alt={selectedConv.contactName || selectedConv.remotePhone} />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {(
                         selectedConv.contactName || selectedConv.remotePhone
@@ -739,10 +801,13 @@ export default function WhatsAppLayout({
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-semibold">
-                      {selectedConv.contactName ||
-                        formatPhone(selectedConv.remotePhone)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">
+                        {selectedConv.contactName ||
+                          formatPhone(selectedConv.remotePhone)}
+                      </p>
+                      <CrmStageWidget phoneNumber={selectedConv.remotePhone} />
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {selectedConv.remotePhone}
                       {selectedConv.assignedToName && (
@@ -754,6 +819,16 @@ export default function WhatsAppLayout({
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Convert to Patient */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => setShowConvertDialog(true)}
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Converter Paciente</span>
+                  </Button>
                   {/* Labels popover */}
                   <Popover>
                     <PopoverTrigger asChild>
@@ -1328,6 +1403,16 @@ export default function WhatsAppLayout({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Convert Contact Dialog */}
+      {selectedConv && (
+        <ConvertContactDialog
+          open={showConvertDialog}
+          onOpenChange={setShowConvertDialog}
+          contactName={selectedConv.contactName}
+          phoneNumber={selectedConv.remotePhone}
+        />
+      )}
 
       {/* Labels Manager Dialog */}
       <LabelsManager
