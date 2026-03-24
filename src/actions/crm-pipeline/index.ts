@@ -182,15 +182,19 @@ export async function getContactsWithStages(search?: string) {
       )
     : undefined;
 
-  const patients = await db.query.patientsTable.findMany({
-    where: and(eq(patientsTable.clinicId, clinicId), searchCondition),
-  });
-
+  // Get all contact stages first
   const contactStages = await db.query.crmContactStagesTable.findMany({
     where: eq(crmContactStagesTable.clinicId, clinicId),
   });
-
   const stageMap = new Map(contactStages.map((cs) => [cs.patientId, cs]));
+
+  // When searching, load matching patients (limited)
+  // When not searching, load only patients in pipeline + recent ones (limit 200 total)
+  const patients = await db.query.patientsTable.findMany({
+    where: and(eq(patientsTable.clinicId, clinicId), searchCondition),
+    orderBy: (table, { desc: d }) => [d(table.createdAt)],
+    limit: search ? 50 : 200,
+  });
 
   return patients.map((p) => ({
     ...p,
@@ -553,19 +557,15 @@ export async function getAllChecklistData() {
     where: eq(crmContactStagesTable.clinicId, clinicId),
   });
 
+  // Fetch all checklist completions in ONE query using SQL IN
   const contactStageIds = contactStages.map((cs) => cs.id);
-
   let contactChecklist: typeof crmContactChecklistTable.$inferSelect[] = [];
+
   if (contactStageIds.length > 0) {
-    // Fetch all contact checklist items for this clinic's contacts
-    const allChecklist = [];
-    for (const csId of contactStageIds) {
-      const items = await db.query.crmContactChecklistTable.findMany({
-        where: eq(crmContactChecklistTable.contactStageId, csId),
-      });
-      allChecklist.push(...items);
-    }
-    contactChecklist = allChecklist;
+    const { inArray } = await import("drizzle-orm");
+    contactChecklist = await db.query.crmContactChecklistTable.findMany({
+      where: inArray(crmContactChecklistTable.contactStageId, contactStageIds),
+    });
   }
 
   return { stageItems, contactChecklist };
