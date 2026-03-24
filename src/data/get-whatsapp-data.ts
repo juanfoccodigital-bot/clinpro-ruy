@@ -55,7 +55,19 @@ export const getConversations = async ({
       eq(whatsappConversationsTable.connectionId, connectionId),
     ),
     with: {
-      contact: true,
+      contact: {
+        with: {
+          patient: {
+            with: {
+              crmContactStage: {
+                with: {
+                  stage: true,
+                },
+              },
+            },
+          },
+        },
+      },
       labels: {
         with: {
           label: true,

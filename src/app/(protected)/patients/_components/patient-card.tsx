@@ -41,8 +41,10 @@ const PatientCard = ({ patient }: PatientCardProps) => {
     return phone;
   };
 
-  const getSexLabel = (sex: "male" | "female") => {
-    return sex === "male" ? "Masculino" : "Feminino";
+  const getSexLabel = (sex: "male" | "female" | "not_informed") => {
+    if (sex === "male") return "Masculino";
+    if (sex === "female") return "Feminino";
+    return "Nao informado";
   };
 
   return (

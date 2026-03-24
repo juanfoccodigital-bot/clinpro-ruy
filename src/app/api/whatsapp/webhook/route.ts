@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/db";
 import {
+  crmContactActivitiesTable,
+  crmContactStagesTable,
+  crmPipelineStagesTable,
+  patientsTable,
   whatsappConnectionsTable,
   whatsappContactsTable,
   whatsappConversationsTable,
@@ -210,6 +214,101 @@ export async function POST(request: NextRequest) {
             .set(updates)
             .where(eq(whatsappContactsTable.id, contact.id));
         }
+      }
+
+      // ── Auto-create patient and CRM lead ──
+      try {
+        const existingPatient = await db.query.patientsTable.findFirst({
+          where: and(
+            eq(patientsTable.clinicId, connection.clinicId),
+            eq(patientsTable.phoneNumber, remotePhone),
+          ),
+        });
+
+        if (!existingPatient && !isFromMe) {
+          // Format phone number for display
+          let formattedPhone = remotePhone;
+          if (remotePhone.length === 13) {
+            formattedPhone =
+              "+" +
+              remotePhone.slice(0, 2) +
+              " " +
+              remotePhone.slice(2, 4) +
+              " " +
+              remotePhone.slice(4, 9) +
+              "-" +
+              remotePhone.slice(9);
+          }
+
+          // Create patient
+          const [newPatient] = await db
+            .insert(patientsTable)
+            .values({
+              clinicId: connection.clinicId,
+              name: pushName || formattedPhone,
+              phoneNumber: formattedPhone,
+              email: "",
+              sex: "not_informed",
+              leadSource: "whatsapp",
+            })
+            .returning();
+
+          // Link WhatsApp contact to patient
+          await db
+            .update(whatsappContactsTable)
+            .set({ patientId: newPatient.id })
+            .where(eq(whatsappContactsTable.id, contact.id));
+
+          // Add to CRM as first stage (Lead Novo)
+          const firstStage =
+            await db.query.crmPipelineStagesTable.findFirst({
+              where: eq(
+                crmPipelineStagesTable.clinicId,
+                connection.clinicId,
+              ),
+              orderBy: (table, { asc }) => [asc(table.order)],
+            });
+
+          if (firstStage) {
+            await db
+              .insert(crmContactStagesTable)
+              .values({
+                clinicId: connection.clinicId,
+                patientId: newPatient.id,
+                stageId: firstStage.id,
+              })
+              .onConflictDoNothing();
+
+            // Log activity
+            await db.insert(crmContactActivitiesTable).values({
+              clinicId: connection.clinicId,
+              patientId: newPatient.id,
+              type: "contact_created",
+              description: "Lead criado automaticamente via WhatsApp",
+              metadata: { source: "whatsapp", phone: remotePhone },
+            });
+          }
+
+          console.log(
+            `[WhatsApp Webhook] Auto-created patient and CRM lead for ${remotePhone}`,
+          );
+        } else if (existingPatient && !contact.patientId) {
+          // Link existing patient to WhatsApp contact
+          await db
+            .update(whatsappContactsTable)
+            .set({ patientId: existingPatient.id })
+            .where(eq(whatsappContactsTable.id, contact.id));
+
+          console.log(
+            `[WhatsApp Webhook] Linked existing patient to WhatsApp contact ${remotePhone}`,
+          );
+        }
+      } catch (crmError) {
+        console.error(
+          "[WhatsApp Webhook] Error creating patient/CRM lead:",
+          crmError,
+        );
+        // Don't fail the webhook for CRM errors
       }
 
       // ── Update or create conversation ──

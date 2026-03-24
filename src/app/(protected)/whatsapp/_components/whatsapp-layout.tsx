@@ -102,6 +102,11 @@ interface ConversationLabel {
   color: string;
 }
 
+interface CrmStageInfo {
+  name: string;
+  color: string;
+}
+
 interface Conversation {
   id: string;
   remotePhone: string;
@@ -115,6 +120,7 @@ interface Conversation {
   lastMessageAt: string | null;
   lastMessageDirection: string | null;
   assignedToName: string | null;
+  crmStage: CrmStageInfo | null;
   labels: ConversationLabel[];
 }
 
@@ -204,6 +210,11 @@ export default function WhatsAppLayout({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const prevTotalUnreadRef = useRef(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const activeConnection = connections[0];
   const isConnected = activeConnection?.status === "connected";
@@ -586,6 +597,8 @@ export default function WhatsAppLayout({
 
   const formatTime = (dateStr: string | null) => {
     if (!dateStr) return "";
+    // Avoid hydration mismatch: return stable value until client-mounted
+    if (!isMounted) return "";
     const date = dayjs(dateStr);
     const now = dayjs();
     if (now.diff(date, "day") === 0) return date.format("HH:mm");
@@ -736,11 +749,22 @@ export default function WhatsAppLayout({
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <p
-                          className={`truncate text-sm ${!conv.isRead ? "font-bold" : "font-medium"}`}
-                        >
-                          {conv.contactName || formatPhone(conv.remotePhone)}
-                        </p>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p
+                            className={`truncate text-sm ${!conv.isRead ? "font-bold" : "font-medium"}`}
+                          >
+                            {conv.contactName || formatPhone(conv.remotePhone)}
+                          </p>
+                          {conv.crmStage && (
+                            <span
+                              className="inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium text-white"
+                              style={{ backgroundColor: conv.crmStage.color }}
+                              title={conv.crmStage.name}
+                            >
+                              {conv.crmStage.name}
+                            </span>
+                          )}
+                        </div>
                         <span
                           className={`shrink-0 text-xs ${!conv.isRead ? "font-semibold text-primary" : "text-muted-foreground"}`}
                         >

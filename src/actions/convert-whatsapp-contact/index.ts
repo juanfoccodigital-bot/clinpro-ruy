@@ -18,7 +18,7 @@ export async function convertWhatsappContact(data: {
   phoneNumber: string;
   name: string;
   email?: string;
-  sex: "male" | "female";
+  sex: "male" | "female" | "not_informed";
   leadSource?: string;
   leadSourceDetail?: string;
 }) {

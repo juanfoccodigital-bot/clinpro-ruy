@@ -62,6 +62,12 @@ const WhatsAppPage = async () => {
           lastMessageAt: c.lastMessageAt?.toISOString() || null,
           lastMessageDirection: c.lastMessageDirection,
           assignedToName: c.assignedTo?.name || null,
+          crmStage: c.contact?.patient?.crmContactStage?.stage
+            ? {
+                name: c.contact.patient.crmContactStage.stage.name,
+                color: c.contact.patient.crmContactStage.stage.color,
+              }
+            : null,
           labels: c.labels.map((cl) => ({
             id: cl.label.id,
             name: cl.label.name,

@@ -52,7 +52,7 @@ export default function ConvertContactDialog({
 
   const [name, setName] = useState(contactName || "");
   const [email, setEmail] = useState("");
-  const [sex, setSex] = useState<"male" | "female">("female");
+  const [sex, setSex] = useState<"male" | "female" | "not_informed">("female");
   const [leadSource] = useState("whatsapp");
   const [leadSourceDetail, setLeadSourceDetail] = useState("");
 
@@ -191,7 +191,7 @@ export default function ConvertContactDialog({
 
             <div className="space-y-2">
               <Label>Sexo *</Label>
-              <Select value={sex} onValueChange={(v) => setSex(v as "male" | "female")}>
+              <Select value={sex} onValueChange={(v) => setSex(v as "male" | "female" | "not_informed")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
