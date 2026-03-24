@@ -182,8 +182,10 @@ export async function POST(request: NextRequest) {
         ),
       });
 
-      const pushName = data.pushName || null;
-      const profilePicUrl = data.profilePictureUrl || null;
+      // Only use pushName from INBOUND messages (fromMe=false)
+      // Outbound messages have the clinic's own profile name, not the contact's
+      const pushName = !isFromMe ? (data.pushName || null) : null;
+      const profilePicUrl = !isFromMe ? (data.profilePictureUrl || null) : null;
 
       if (!contact) {
         const [newContact] = await db
@@ -196,8 +198,8 @@ export async function POST(request: NextRequest) {
           })
           .returning();
         contact = newContact;
-      } else {
-        // Update contact info if we have new data
+      } else if (!isFromMe) {
+        // Only update contact info from inbound messages
         const updates: Record<string, unknown> = {};
         if (
           pushName &&
