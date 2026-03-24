@@ -136,7 +136,7 @@ const CrmPage = async ({ searchParams }: CrmPageProps) => {
   // Fetch pipeline data
   const [stages, contactsWithStages, checklistData] = await Promise.all([
     getPipelineStages(),
-    getContactsWithStages(),
+    getContactsWithStages(search || undefined),
     getAllChecklistData(),
   ]);
 

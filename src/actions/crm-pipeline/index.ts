@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -170,13 +170,20 @@ export async function removeContactFromPipeline(patientId: string) {
 }
 
 // Get all contacts with their stages
-export async function getContactsWithStages() {
+export async function getContactsWithStages(search?: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user?.clinic?.id) throw new Error("Unauthorized");
   const clinicId = session.user.clinic.id;
 
+  const searchCondition = search
+    ? or(
+        ilike(patientsTable.name, `%${search}%`),
+        ilike(patientsTable.phoneNumber, `%${search}%`),
+      )
+    : undefined;
+
   const patients = await db.query.patientsTable.findMany({
-    where: eq(patientsTable.clinicId, clinicId),
+    where: and(eq(patientsTable.clinicId, clinicId), searchCondition),
   });
 
   const contactStages = await db.query.crmContactStagesTable.findMany({
