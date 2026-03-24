@@ -167,7 +167,6 @@ interface WhatsAppLayoutProps {
   quickReplies: QuickReply[];
   members: Member[];
   currentUserId: string;
-  currentUserName: string;
 }
 
 export default function WhatsAppLayout({
@@ -176,7 +175,6 @@ export default function WhatsAppLayout({
   labels,
   templates,
   quickReplies,
-  currentUserName,
 }: WhatsAppLayoutProps) {
   const router = useRouter();
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
@@ -452,16 +450,10 @@ export default function WhatsAppLayout({
   const handleSend = () => {
     if (!messageInput.trim() || !selectedConv || !activeConnection) return;
 
-    // Add signature if member
-    let content = messageInput.trim();
-    if (currentUserName) {
-      content = `${content}\n\n_${currentUserName}_`;
-    }
-
     sendAction.execute({
       connectionId: activeConnection.id,
       remotePhone: selectedConv.remotePhone,
-      content,
+      content: messageInput.trim(),
     });
   };
 

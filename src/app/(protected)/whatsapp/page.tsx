@@ -95,7 +95,6 @@ const WhatsAppPage = async () => {
           name: m.user.name,
         }))}
         currentUserId={session.user.id}
-        currentUserName={session.user.name}
       />
     </WithAuthentication>
   );
