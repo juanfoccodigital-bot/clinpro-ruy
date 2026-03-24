@@ -27,7 +27,12 @@
       "Bash(grep -l \"add.*patient\\\\|create.*patient\\\\|delete.*patient\" /Users/usuario/Downloads/clinpro-main/src/actions/*.ts)",
       "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" https://evolution.fyreoficial.com.br/instance/fetchInstances -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\")",
       "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" -X POST https://clinicaelo.gestaoclinpro.com.br/api/whatsapp/webhook -H \"Content-Type: application/json\" -H \"x-webhook-secret: elo-whatsapp-webhook-2026\" -d '{\"\"event\"\":\"\"test\"\",\"\"data\"\":{}}')",
-      "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" -X POST https://clinicaelo.gestaoclinpro.com.br/api/whatsapp/webhook -H \"Content-Type: application/json\" -d '{\"\"event\"\":\"\"messages.upsert\"\",\"\"instance\"\":\"\"elo-clinic\"\",\"\"data\"\":{\"\"key\"\":{\"\"remoteJid\"\":\"\"5541999999999@s.whatsapp.net\"\",\"\"fromMe\"\":false},\"\"message\"\":{\"\"conversation\"\":\"\"teste webhook\"\"},\"\"pushName\"\":\"\"Teste\"\"}}')"
+      "Bash(curl -s -w \"\\\\nHTTP:%{http_code}\" -X POST https://clinicaelo.gestaoclinpro.com.br/api/whatsapp/webhook -H \"Content-Type: application/json\" -d '{\"\"event\"\":\"\"messages.upsert\"\",\"\"instance\"\":\"\"elo-clinic\"\",\"\"data\"\":{\"\"key\"\":{\"\"remoteJid\"\":\"\"5541999999999@s.whatsapp.net\"\",\"\"fromMe\"\":false},\"\"message\"\":{\"\"conversation\"\":\"\"teste webhook\"\"},\"\"pushName\"\":\"\"Teste\"\"}}')",
+      "Bash(curl -s https://evolution.fyreoficial.com.br/instance/fetchInstances -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\")",
+      "Bash(curl -s https://evolution.fyreoficial.com.br/webhook/find/elo-clinica -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\")",
+      "Bash(curl -s -X PUT https://evolution.fyreoficial.com.br/webhook/set/elo-clinica -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X POST https://evolution.fyreoficial.com.br/webhook/set/elo-clinica -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(vercel ls:*)"
     ],
     "additionalDirectories": [
       "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\"",
