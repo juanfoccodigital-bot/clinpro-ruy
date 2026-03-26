@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Bell,
+  BookOpen,
   Bot,
   CalendarDays,
   CalendarRange,
@@ -154,10 +155,11 @@ const allNavGroups: NavGroup[] = [
   {
     title: "Mais",
     icon: BarChart3,
-    matchPaths: ["/relatorios", "/configuracoes", "/subscription"],
+    matchPaths: ["/relatorios", "/configuracoes", "/subscription", "/manual"],
     items: [
       { title: "Relatorios", url: "/relatorios", icon: BarChart3 },
       { title: "Pagamento", url: "/subscription", icon: DollarSign },
+      { title: "Manual", url: "/manual", icon: BookOpen },
       { title: "Configuracoes", url: "/configuracoes", icon: Settings },
       { title: "LGPD", url: "/configuracoes/lgpd", icon: Shield },
     ],
