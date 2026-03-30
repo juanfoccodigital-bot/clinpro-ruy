@@ -259,7 +259,10 @@ export const patientsTableRelations = relations(
     vitals: many(vitalsTable),
     attachments: many(medicalAttachmentsTable),
     documents: many(documentsTable),
-    crmContactStage: one(crmContactStagesTable),
+    crmContactStage: one(crmContactStagesTable, {
+      fields: [patientsTable.id],
+      references: [crmContactStagesTable.patientId],
+    }),
   }),
 );
 
