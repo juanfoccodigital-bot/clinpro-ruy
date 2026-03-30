@@ -188,13 +188,27 @@ export async function POST(request: NextRequest) {
       const profilePicUrl = !isFromMe ? (data.profilePictureUrl || null) : null;
 
       if (!contact) {
+        // Try to fetch profile picture from Evolution API
+        let fetchedPic = profilePicUrl;
+        if (!fetchedPic && connection.apiUrl && connection.apiKey) {
+          try {
+            const picRes = await fetch(`${connection.apiUrl}/chat/fetchProfilePictureUrl/${connection.instanceName}`, {
+              method: "POST",
+              headers: { "apikey": connection.apiKey, "Content-Type": "application/json" },
+              body: JSON.stringify({ number: remotePhone }),
+            });
+            const picData = await picRes.json();
+            fetchedPic = picData?.profilePictureUrl || picData?.pictureUrl || null;
+          } catch {}
+        }
+
         const [newContact] = await db
           .insert(whatsappContactsTable)
           .values({
             clinicId: connection.clinicId,
             phoneNumber: remotePhone,
             name: pushName,
-            profilePictureUrl: profilePicUrl,
+            profilePictureUrl: fetchedPic,
           })
           .returning();
         contact = newContact;
