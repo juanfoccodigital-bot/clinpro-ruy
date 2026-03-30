@@ -184,8 +184,24 @@ export async function POST(request: NextRequest) {
 
       // Only use pushName from INBOUND messages (fromMe=false)
       // Outbound messages have the clinic's own profile name, not the contact's
-      const pushName = !isFromMe ? (data.pushName || null) : null;
+      let pushName = !isFromMe ? (data.pushName || null) : null;
       const profilePicUrl = !isFromMe ? (data.profilePictureUrl || null) : null;
+
+      // For outbound to unknown contacts, fetch name from Evolution contacts list
+      if (isFromMe && connection.apiUrl && connection.apiKey) {
+        try {
+          const contactRes = await fetch(`${connection.apiUrl}/chat/findContacts/${connection.instanceName}`, {
+            method: "POST",
+            headers: { "apikey": connection.apiKey, "Content-Type": "application/json" },
+            body: JSON.stringify({ where: { id: `${remotePhone}@s.whatsapp.net` } }),
+          });
+          const contactData = await contactRes.json();
+          const found = Array.isArray(contactData) ? contactData[0] : null;
+          if (found) {
+            if (!pushName) pushName = found.pushName || found.name || found.notify || null;
+          }
+        } catch {}
+      }
 
       if (!contact) {
         // Try to fetch profile picture from Evolution API
