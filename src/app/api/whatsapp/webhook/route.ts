@@ -153,6 +153,27 @@ export async function POST(request: NextRequest) {
         mediaUrl = `data:${mime};base64,${msg.base64}`;
       }
 
+      // Fallback 2: fetch media via Evolution API getBase64FromMediaMessage
+      if (!mediaUrl && messageType !== "text" && data.key?.id && connection.apiUrl && connection.apiKey) {
+        try {
+          const mediaRes = await fetch(
+            `${connection.apiUrl}/chat/getBase64FromMediaMessage/${connection.instanceName}`,
+            {
+              method: "POST",
+              headers: { "apikey": connection.apiKey, "Content-Type": "application/json" },
+              body: JSON.stringify({ message: { key: data.key }, convertToMp4: messageType === "video" }),
+            }
+          );
+          const mediaData = await mediaRes.json();
+          if (mediaData?.base64) {
+            const mime = mediaData.mimetype || (messageType === "audio" ? "audio/ogg" : messageType === "image" ? "image/jpeg" : messageType === "video" ? "video/mp4" : "application/octet-stream");
+            mediaUrl = `data:${mime};base64,${mediaData.base64}`;
+          }
+        } catch (mediaErr) {
+          console.error("[WhatsApp Webhook] Error fetching media:", mediaErr);
+        }
+      }
+
       const direction = isFromMe ? "outbound" : "inbound";
 
       // Save message (only if not already saved by send action)

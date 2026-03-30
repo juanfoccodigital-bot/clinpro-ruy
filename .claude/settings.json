@@ -34,7 +34,8 @@
       "Bash(curl -s -X POST https://evolution.fyreoficial.com.br/webhook/set/elo-clinica -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)",
       "Bash(vercel ls:*)",
       "Bash(curl -s https://evolution.fyreoficial.com.br/webhook/find/elo-clinic -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\")",
-      "Bash(curl -s -X POST \"https://evolution.fyreoficial.com.br/webhook/set/elo-clinic\" -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)"
+      "Bash(curl -s -X POST \"https://evolution.fyreoficial.com.br/webhook/set/elo-clinic\" -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)",
+      "Bash(curl -s -X POST \"https://evolution.fyreoficial.com.br/settings/set/elo-clinic\" -H \"apikey: KS2rnpBe7QXyj0pnGOOPAqBDBjC0r0UM\" -H \"Content-Type: application/json\" -d '{:*)"
     ],
     "additionalDirectories": [
       "/Users/usuario/Downloads/clinpro-main/s/apt?.doctor?.specialty || \"—\"/\"—\"",
