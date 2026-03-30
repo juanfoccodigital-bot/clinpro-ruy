@@ -103,6 +103,7 @@ export default function ForwardMessageDialog({
           connectionId,
           remotePhone: conv.remotePhone,
           content,
+          skipSignature: true,
         });
       }
 

@@ -1001,12 +1001,16 @@ export default function WhatsAppLayout({
               </div>
 
               {/* Messages */}
-              {loadingMessages ? (
-                <div className="flex flex-1 items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-[#D08C32]" />
-                </div>
-              ) : (
-              <div ref={scrollAreaRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              <div ref={scrollAreaRef} className="relative min-h-0 flex-1 overflow-y-auto px-3 py-2">
+                {/* Loading overlay */}
+                {loadingMessages && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+                    <div className="flex items-center gap-2 rounded-xl bg-card px-4 py-2 shadow-lg">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#D08C32]" />
+                      <span className="text-xs text-muted-foreground">Carregando...</span>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1">
                   {messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -1054,7 +1058,12 @@ export default function WhatsAppLayout({
                           )}
                           {msg.mediaUrl && msg.messageType === "audio" && (
                             <div className="mb-1">
-                              <audio controls className="max-w-[250px]" preload="none">
+                              <audio
+                                controls
+                                className="max-w-[280px] h-10 rounded-lg"
+                                preload="metadata"
+                                style={{ filter: msg.direction === "outbound" ? "invert(1) brightness(2) hue-rotate(180deg)" : "none" }}
+                              >
                                 <source src={msg.mediaUrl} />
                               </audio>
                             </div>
@@ -1154,7 +1163,6 @@ export default function WhatsAppLayout({
                   <div ref={messagesEndRef} />
                 </div>
               </div>
-              )}
 
               {/* Message Input */}
               <div className="border-t bg-background px-3 py-2">

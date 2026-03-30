@@ -12,6 +12,7 @@ export const sendWhatsappMessageSchema = z.object({
     .enum(["text", "image", "audio", "video", "document", "location", "contact"])
     .optional()
     .default("text"),
+  skipSignature: z.boolean().optional().default(false),
 });
 
 export const sendWhatsappMediaSchema = z.object({

@@ -34,9 +34,9 @@ export const sendWhatsappMessage = protectedWithClinicActionClient
     });
 
     try {
-      // Append signature if enabled
+      // Append signature if enabled (skip for forwarded messages)
       let finalContent = parsedInput.content;
-      if (connection.signatureEnabled && connection.signatureText) {
+      if (!parsedInput.skipSignature && connection.signatureEnabled && connection.signatureText) {
         finalContent = `${parsedInput.content}\n\n*${connection.signatureText}*`;
       }
 
