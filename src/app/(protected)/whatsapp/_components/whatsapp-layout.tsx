@@ -1021,16 +1021,6 @@ export default function WhatsAppLayout({
                         key={msg.id}
                         className={`group relative flex ${msg.direction === "outbound" ? "justify-end" : "justify-start"}`}
                       >
-                        {/* Forward button - appears on hover */}
-                        <button
-                          onClick={() => handleForward(msg)}
-                          className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 ${
-                            msg.direction === "outbound" ? "left-0 -translate-x-8" : "right-0 translate-x-8"
-                          }`}
-                          title="Encaminhar"
-                        >
-                          <CornerUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
                         <div
                           className={`relative max-w-[75%] rounded-lg px-3 py-1.5 ${
                             msg.direction === "outbound"
@@ -1038,6 +1028,18 @@ export default function WhatsAppLayout({
                               : "rounded-bl-sm bg-background shadow-sm"
                           }`}
                         >
+                          {/* Forward button */}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleForward(msg); }}
+                            className={`absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded-full ${
+                              msg.direction === "outbound"
+                                ? "left-1 bg-white/20 hover:bg-white/30"
+                                : "right-1 bg-black/5 hover:bg-black/10"
+                            }`}
+                            title="Encaminhar"
+                          >
+                            <CornerUpRight className={`h-3 w-3 ${msg.direction === "outbound" ? "text-white/80" : "text-muted-foreground"}`} />
+                          </button>
                           {/* Media content */}
                           {msg.mediaUrl && msg.messageType === "image" && (
                             <div className="mb-1">
