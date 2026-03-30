@@ -9,6 +9,7 @@ import {
   Check,
   CheckCheck,
   Circle,
+  CornerUpRight,
   Download,
   File,
   Image as ImageIcon,
@@ -82,6 +83,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 import ConvertContactDialog from "./convert-contact-dialog";
 import CrmStageWidget from "./crm-stage-widget";
+import ForwardMessageDialog from "./forward-message-dialog";
 import LabelsManager from "./labels-manager";
 import TemplatesManager from "./templates-manager";
 
@@ -209,6 +211,14 @@ export default function WhatsAppLayout({
   const audioChunksRef = useRef<Blob[]>([]);
   const prevTotalUnreadRef = useRef(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const isPollingRef = useRef(false);
+  const [forwardMessage, setForwardMessage] = useState<{
+    content: string;
+    messageType: string;
+    mediaUrl: string | null;
+  } | null>(null);
+  const [showForwardDialog, setShowForwardDialog] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -292,6 +302,9 @@ export default function WhatsAppLayout({
   // Fetch messages for selected conversation
   const loadMessages = useCallback(async () => {
     if (!selectedConv || !activeConnection) return;
+    if (!isPollingRef.current) {
+      setLoadingMessages(true);
+    }
     try {
       const result = await fetchWhatsappMessages({
         connectionId: activeConnection.id,
@@ -302,6 +315,8 @@ export default function WhatsAppLayout({
       }
     } catch {
       // Silent fail for polling
+    } finally {
+      setLoadingMessages(false);
     }
   }, [selectedConv, activeConnection]);
 
@@ -317,9 +332,11 @@ export default function WhatsAppLayout({
   // Poll for new messages and conversations every 5 seconds
   useEffect(() => {
     if (!activeConnection || !isConnected) return;
-    pollRef.current = setInterval(() => {
+    pollRef.current = setInterval(async () => {
       if (selectedConvId) {
-        loadMessages();
+        isPollingRef.current = true;
+        await loadMessages();
+        isPollingRef.current = false;
       }
       router.refresh();
     }, 5000);
@@ -477,6 +494,15 @@ export default function WhatsAppLayout({
 
   const handleTemplateSelect = (content: string) => {
     setMessageInput(content);
+  };
+
+  const handleForward = (msg: Message) => {
+    setForwardMessage({
+      content: msg.content || "",
+      messageType: msg.messageType,
+      mediaUrl: msg.mediaUrl,
+    });
+    setShowForwardDialog(true);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -975,6 +1001,11 @@ export default function WhatsAppLayout({
               </div>
 
               {/* Messages */}
+              {loadingMessages ? (
+                <div className="flex flex-1 items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#D08C32]" />
+                </div>
+              ) : (
               <div ref={scrollAreaRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
                 <div className="space-y-1">
                   {messages.length === 0 ? (
@@ -988,8 +1019,18 @@ export default function WhatsAppLayout({
                     messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex ${msg.direction === "outbound" ? "justify-end" : "justify-start"}`}
+                        className={`group relative flex ${msg.direction === "outbound" ? "justify-end" : "justify-start"}`}
                       >
+                        {/* Forward button - appears on hover */}
+                        <button
+                          onClick={() => handleForward(msg)}
+                          className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded-full bg-muted hover:bg-muted/80 ${
+                            msg.direction === "outbound" ? "left-0 -translate-x-8" : "right-0 translate-x-8"
+                          }`}
+                          title="Encaminhar"
+                        >
+                          <CornerUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                         <div
                           className={`relative max-w-[75%] rounded-lg px-3 py-1.5 ${
                             msg.direction === "outbound"
@@ -1111,6 +1152,7 @@ export default function WhatsAppLayout({
                   <div ref={messagesEndRef} />
                 </div>
               </div>
+              )}
 
               {/* Message Input */}
               <div className="border-t bg-background px-3 py-2">
@@ -1445,6 +1487,17 @@ export default function WhatsAppLayout({
           onOpenChange={setShowConvertDialog}
           contactName={selectedConv.contactName}
           phoneNumber={selectedConv.remotePhone}
+        />
+      )}
+
+      {/* Forward Message Dialog */}
+      {activeConnection && (
+        <ForwardMessageDialog
+          open={showForwardDialog}
+          onOpenChange={setShowForwardDialog}
+          message={forwardMessage}
+          conversations={conversations}
+          connectionId={activeConnection.id}
         />
       )}
 

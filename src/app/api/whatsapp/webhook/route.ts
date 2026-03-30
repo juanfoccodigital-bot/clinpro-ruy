@@ -90,24 +90,27 @@ export async function POST(request: NextRequest) {
 
       const msg = data.message;
 
+      // Max base64 length to store in DB (500KB) to avoid bloat and Vercel limits
+      const MAX_BASE64_LENGTH = 500000;
+
       if (msg?.imageMessage) {
         messageType = "image";
         content = msg.imageMessage.caption || "";
-        if (msg.imageMessage.base64) {
+        if (msg.imageMessage.base64 && msg.imageMessage.base64.length < MAX_BASE64_LENGTH) {
           const mime = msg.imageMessage.mimetype || "image/jpeg";
           mediaUrl = `data:${mime};base64,${msg.imageMessage.base64}`;
         }
       } else if (msg?.audioMessage) {
         messageType = "audio";
         content = "";
-        if (msg.audioMessage.base64) {
+        if (msg.audioMessage.base64 && msg.audioMessage.base64.length < MAX_BASE64_LENGTH) {
           const mime = msg.audioMessage.mimetype || "audio/ogg";
           mediaUrl = `data:${mime};base64,${msg.audioMessage.base64}`;
         }
       } else if (msg?.videoMessage) {
         messageType = "video";
         content = msg.videoMessage.caption || "";
-        if (msg.videoMessage.base64) {
+        if (msg.videoMessage.base64 && msg.videoMessage.base64.length < MAX_BASE64_LENGTH) {
           const mime = msg.videoMessage.mimetype || "video/mp4";
           mediaUrl = `data:${mime};base64,${msg.videoMessage.base64}`;
         }
@@ -115,7 +118,7 @@ export async function POST(request: NextRequest) {
         messageType = "document";
         const doc = msg.documentMessage || msg.documentWithCaptionMessage.message.documentMessage;
         content = doc.fileName || doc.caption || "";
-        if (doc.base64) {
+        if (doc.base64 && doc.base64.length < MAX_BASE64_LENGTH) {
           const mime = doc.mimetype || "application/octet-stream";
           mediaUrl = `data:${mime};base64,${doc.base64}`;
         }
@@ -123,7 +126,7 @@ export async function POST(request: NextRequest) {
         // Treat stickers as images
         messageType = "image";
         content = "";
-        if (msg.stickerMessage.base64) {
+        if (msg.stickerMessage.base64 && msg.stickerMessage.base64.length < MAX_BASE64_LENGTH) {
           const mime = msg.stickerMessage.mimetype || "image/webp";
           mediaUrl = `data:${mime};base64,${msg.stickerMessage.base64}`;
         }
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Fallback: check for base64 at message level (some Evolution API versions put it here)
-      if (!mediaUrl && messageType !== "text" && msg?.base64) {
+      if (!mediaUrl && messageType !== "text" && msg?.base64 && msg.base64.length < MAX_BASE64_LENGTH) {
         const fallbackMimeMap: Record<string, string> = {
           audio: "audio/ogg",
           image: "image/jpeg",
@@ -167,7 +170,14 @@ export async function POST(request: NextRequest) {
           const mediaData = await mediaRes.json();
           if (mediaData?.base64) {
             const mime = mediaData.mimetype || (messageType === "audio" ? "audio/ogg" : messageType === "image" ? "image/jpeg" : messageType === "video" ? "video/mp4" : "application/octet-stream");
-            mediaUrl = `data:${mime};base64,${mediaData.base64}`;
+            // Only store if base64 is under 500KB to avoid DB bloat
+            if (mediaData.base64.length < MAX_BASE64_LENGTH) {
+              mediaUrl = `data:${mime};base64,${mediaData.base64}`;
+            } else {
+              console.log(`[WhatsApp Webhook] Media too large (${Math.round(mediaData.base64.length / 1024)}KB), skipping base64 storage for ${messageType}`);
+            }
+          } else {
+            console.log(`[WhatsApp Webhook] getBase64FromMediaMessage returned no base64 for ${messageType}, response keys: ${Object.keys(mediaData || {}).join(", ")}`);
           }
         } catch (mediaErr) {
           console.error("[WhatsApp Webhook] Error fetching media:", mediaErr);
