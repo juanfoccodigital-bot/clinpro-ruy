@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -15,31 +15,35 @@ export const fetchWhatsappMessages = protectedWithClinicActionClient
     }),
   )
   .action(async ({ parsedInput, ctx }) => {
-    const messages = await db.query.whatsappMessagesTable.findMany({
+    const clinicId = ctx.user.clinic.id;
+    const { connectionId, remotePhone } = parsedInput;
+
+    // Fetch last 100 messages + mark as read in parallel
+    const messagesPromise = db.query.whatsappMessagesTable.findMany({
       where: and(
-        eq(whatsappMessagesTable.clinicId, ctx.user.clinic.id),
-        eq(whatsappMessagesTable.connectionId, parsedInput.connectionId),
-        eq(whatsappMessagesTable.remotePhone, parsedInput.remotePhone),
+        eq(whatsappMessagesTable.clinicId, clinicId),
+        eq(whatsappMessagesTable.connectionId, connectionId),
+        eq(whatsappMessagesTable.remotePhone, remotePhone),
       ),
-      orderBy: [asc(whatsappMessagesTable.createdAt)],
-      with: {
-        sentByUser: true,
-      },
+      orderBy: [desc(whatsappMessagesTable.createdAt)],
+      limit: 100,
     });
 
-    // Mark conversation as read
-    await db
-      .update(whatsappConversationsTable)
+    // Mark as read (don't await - fire and forget)
+    db.update(whatsappConversationsTable)
       .set({ isRead: true, unreadCount: 0 })
       .where(
         and(
-          eq(whatsappConversationsTable.clinicId, ctx.user.clinic.id),
-          eq(whatsappConversationsTable.connectionId, parsedInput.connectionId),
-          eq(whatsappConversationsTable.remotePhone, parsedInput.remotePhone),
+          eq(whatsappConversationsTable.clinicId, clinicId),
+          eq(whatsappConversationsTable.connectionId, connectionId),
+          eq(whatsappConversationsTable.remotePhone, remotePhone),
         ),
-      );
+      ).then(() => {});
 
-    return messages.map((m) => ({
+    const messages = await messagesPromise;
+
+    // Reverse to get chronological order (oldest first)
+    return messages.reverse().map((m) => ({
       id: m.id,
       direction: m.direction,
       messageType: m.messageType,
@@ -47,6 +51,6 @@ export const fetchWhatsappMessages = protectedWithClinicActionClient
       mediaUrl: m.mediaUrl,
       status: m.status,
       createdAt: m.createdAt.toISOString(),
-      sentByUserName: m.sentByUser?.name || null,
+      sentByUserName: null,
     }));
   });
